@@ -40,6 +40,7 @@ fun CalculationScreen(unitSystem: String, context: Context) {
     var dimension1 by remember { mutableStateOf(TextFieldValue("")) }
     var dimension2 by remember { mutableStateOf(TextFieldValue("")) }
     var dimension3 by remember { mutableStateOf(TextFieldValue("")) }
+    var dimension4 by remember { mutableStateOf(TextFieldValue("")) }
     var thickness by remember { mutableStateOf(TextFieldValue("")) }
     var customDensity by remember { mutableStateOf(TextFieldValue("")) }
     var result by remember { mutableStateOf(0.0) }
@@ -177,21 +178,21 @@ fun CalculationScreen(unitSystem: String, context: Context) {
                 OutlinedTextField(
                     value = dimension1,
                     onValueChange = { dimension1 = it },
-                    label = { Text("A-side (${selectedUnit})") },
+                    label = { Text("A-Side (${selectedUnit})") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
                 OutlinedTextField(
                     value = dimension2,
                     onValueChange = { dimension2 = it },
-                    label = { Text("B-side (${selectedUnit})") },
+                    label = { Text("B-Side (${selectedUnit})") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
                 OutlinedTextField(
                     value = dimension3,
                     onValueChange = { dimension3 = it },
-                    label = { Text("C-side (${selectedUnit})") },
+                    label = { Text("C-Side (${selectedUnit})") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
@@ -207,21 +208,28 @@ fun CalculationScreen(unitSystem: String, context: Context) {
                 OutlinedTextField(
                     value = dimension1,
                     onValueChange = { dimension1 = it },
-                    label = { Text("Kort base (${selectedUnit})") },
+                    label = { Text("A-Side (${selectedUnit})") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
                 OutlinedTextField(
                     value = dimension2,
                     onValueChange = { dimension2 = it },
-                    label = { Text("Lang base (${selectedUnit})") },
+                    label = { Text("B-Side (${selectedUnit})") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
                 OutlinedTextField(
                     value = dimension3,
                     onValueChange = { dimension3 = it },
-                    label = { Text("Høyde (${selectedUnit})") },
+                    label = { Text("C-Side (${selectedUnit})") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                )
+                OutlinedTextField(
+                    value = dimension4,
+                    onValueChange = { dimension3 = it },
+                    label = { Text("D-Side (${selectedUnit})") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
