@@ -5,13 +5,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InputField(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
+fun InputField(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier, label: String = "Label") {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("Label") },
+        label = { Text(label) },
         modifier = modifier
     )
 }

@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UnitSelector(selectedUnit: Unit, onUnitChange: (Unit) -> Unit) {
     val units = listOf(Unit.MM, Unit.CM, Unit.M, Unit.FT, Unit.INCH, Unit.YD)

@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import no.steffenhove.betongkalkulator.ui.components.InputField
 import no.steffenhove.betongkalkulator.ui.components.Unit
 import no.steffenhove.betongkalkulator.ui.components.UnitSelector
 import no.steffenhove.betongkalkulator.ui.viewmodel.CalculationViewModel
@@ -24,22 +25,10 @@ fun CalculationScreen(viewModel: CalculationViewModel = viewModel()) {
         UnitSelector(selectedUnit, onUnitChange = { viewModel.setSelectedUnit(it) })
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = dimensions,
-            onValueChange = { dimensions = it },
-            label = { Text("Dimensjoner") },
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth().height(56.dp)
-        )
+        InputField(value = dimensions, onValueChange = { dimensions = it }, label = "Dimensjoner", modifier = Modifier.fillMaxWidth().height(56.dp))
         Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
-            value = weight,
-            onValueChange = { weight = it },
-            label = { Text("Vekt") },
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth().height(56.dp)
-        )
+        InputField(value = weight, onValueChange = { weight = it }, label = "Vekt", modifier = Modifier.fillMaxWidth().height(56.dp))
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
