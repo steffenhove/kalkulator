@@ -5,30 +5,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class SettingsViewModel : ViewModel() {
-    private val _betongDensitet = MutableStateFlow(2400.0)
-    val betongDensitet: StateFlow<Double> get() = _betongDensitet
+    private val _density = MutableStateFlow(2400f)
+    val density: StateFlow<Float> get() = _density
 
-    private val _lecaDensitet = MutableStateFlow(800.0)
-    val lecaDensitet: StateFlow<Double> get() = _lecaDensitet
-
-    private val _siporexDensitet = MutableStateFlow(600.0)
-    val siporexDensitet: StateFlow<Double> get() = _siporexDensitet
-
-    fun updateBetongDensitet(densitet: Double) {
-        _betongDensitet.value = densitet
+    fun setDensity(newDensity: Float) {
+        _density.value = newDensity
+        // Save to preferences (implement this method in PreferencesHelper)
     }
 
-    fun updateLecaDensitet(densitet: Double) {
-        _lecaDensitet.value = densitet
-    }
-
-    fun updateSiporexDensitet(densitet: Double) {
-        _siporexDensitet.value = densitet
-    }
-
-    fun resetToDefaultDensiteter() {
-        _betongDensitet.value = 2400.0
-        _lecaDensitet.value = 800.0
-        _siporexDensitet.value = 600.0
+    fun resetDensity() {
+        _density.value = 2400f
+        // Save to preferences (implement this method in PreferencesHelper)
     }
 }

@@ -1,43 +1,27 @@
 package no.steffenhove.betongkalkulator.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import no.steffenhove.betongkalkulator.ui.viewmodel.SettingsViewModel
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
-    val betongDensitet by viewModel.betongDensitet.collectAsState()
-    val lecaDensitet by viewModel.lecaDensitet.collectAsState()
-    val siporexDensitet by viewModel.siporexDensitet.collectAsState()
+fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
+    val density by viewModel.density.collectAsState()
 
     Column(modifier = Modifier.padding(16.dp)) {
         TextField(
-            value = betongDensitet.toString(),
-            onValueChange = { viewModel.updateBetongDensitet(it.toDoubleOrNull() ?: 2400.0) },
-            label = { Text("Betong Densitet") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            value = density.toString(),
+            onValueChange = { viewModel.setDensity(it.toFloatOrNull() ?: 2400f) },
+            label = { Text("Betong densitet (kg/m³)") },
+            modifier = Modifier.fillMaxWidth()
         )
-        TextField(
-            value = lecaDensitet.toString(),
-            onValueChange = { viewModel.updateLecaDensitet(it.toDoubleOrNull() ?: 800.0) },
-            label = { Text("Leca Densitet") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
-        TextField(
-            value = siporexDensitet.toString(),
-            onValueChange = { viewModel.updateSiporexDensitet(it.toDoubleOrNull() ?: 600.0) },
-            label = { Text("Siporex Densitet") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
-        Button(onClick = {
-            viewModel.resetToDefaultDensiteter()
-        }) {
-            Text("Tilbakestill til standard")
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = { viewModel.resetDensity() }) {
+            Text("Nullstill til standard")
         }
     }
 }

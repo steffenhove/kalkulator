@@ -5,28 +5,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import no.steffenhove.betongkalkulator.ui.screens.CalculationScreen
-import no.steffenhove.betongkalkulator.ui.screens.HistoryScreen
 import no.steffenhove.betongkalkulator.ui.screens.SettingsScreen
-import no.steffenhove.betongkalkulator.ui.viewmodel.CalculationViewModel
-import no.steffenhove.betongkalkulator.ui.viewmodel.HistoryViewModel
-import no.steffenhove.betongkalkulator.ui.viewmodel.SettingsViewModel
+import no.steffenhove.betongkalkulator.ui.screens.StartScreen
+import no.steffenhove.betongkalkulator.ui.screens.HistoryScreen
 
 @Composable
-fun AppNavigation(
-    navController: NavHostController,
-    calculationViewModel: CalculationViewModel,
-    historyViewModel: HistoryViewModel,
-    settingsViewModel: SettingsViewModel
-) {
-    NavHost(navController = navController, startDestination = "calculation") {
-        composable("calculation") {
-            CalculationScreen(viewModel = calculationViewModel)
-        }
-        composable("history") {
-            HistoryScreen(viewModel = historyViewModel)
-        }
-        composable("settings") {
-            SettingsScreen(viewModel = settingsViewModel)
-        }
+fun AppNavigation(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = "start") {
+        composable("start") { StartScreen(navController) }
+        composable("settings") { SettingsScreen() }
+        composable("calculator") { CalculationScreen() }
+        composable("history") { HistoryScreen() }
     }
 }

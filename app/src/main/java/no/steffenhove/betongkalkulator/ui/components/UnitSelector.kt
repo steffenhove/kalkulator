@@ -1,29 +1,38 @@
 package no.steffenhove.betongkalkulator.ui.components
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Text
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UnitSelector(selectedUnit: String, onUnitSelected: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    val units = listOf("mm", "cm", "m", "fot", "tommer")
+fun UnitSelector(selectedUnit: Unit, onUnitChange: (Unit) -> Unit) {
+    val units = listOf(Unit.MM, Unit.CM, Unit.M, Unit.FT, Unit.INCH, Unit.YD)
+    val expanded = remember { mutableStateOf(false) }
 
-    Column {
-        Text("Enhet: $selectedUnit")
-        Button(onClick = { expanded = true }) {
-            Text("Velg enhet")
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+    Box {
+        OutlinedTextField(
+            value = selectedUnit.name,
+            onValueChange = {},
+            label = { Text("Unit") },
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded.value = true }
+        )
+        DropdownMenu(
+            expanded = expanded.value,
+            onDismissRequest = { expanded.value = false }
+        ) {
             units.forEach { unit ->
                 DropdownMenuItem(
-                    text = { Text(unit) },
+                    text = { Text(text = unit.name) },
                     onClick = {
-                        onUnitSelected(unit)
-                        expanded = false
+                        onUnitChange(unit)
+                        expanded.value = false
                     }
                 )
             }

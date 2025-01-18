@@ -1,27 +1,48 @@
 package no.steffenhove.betongkalkulator.ui.utils
 
-object UnitConverter {
-    fun convertToMeters(value: Double, unit: String): Double {
-        return when (unit) {
-            "mm" -> value / 1000
-            "cm" -> value / 100
-            "m" -> value
-            "ft" -> value * 0.3048
-            "inch" -> value * 0.0254
-            "yard" -> value * 0.9144
-            else -> value
-        }
-    }
+import no.steffenhove.betongkalkulator.ui.components.Unit
 
-    fun convertFromMeters(value: Double, unit: String): Double {
-        return when (unit) {
-            "mm" -> value * 1000
-            "cm" -> value * 100
-            "m" -> value
-            "ft" -> value / 0.3048
-            "inch" -> value / 0.0254
-            "yard" -> value / 0.9144
-            else -> value
+object UnitConverter {
+    fun convert(value: Float, from: Unit, to: Unit): Float {
+        return when (from) {
+            Unit.MM -> when (to) {
+                Unit.CM -> value / 10
+                Unit.M -> value / 1000
+                else -> value
+            }
+            Unit.CM -> when (to) {
+                Unit.MM -> value * 10
+                Unit.M -> value / 100
+                else -> value
+            }
+            Unit.M -> when (to) {
+                Unit.MM -> value * 1000
+                Unit.CM -> value * 100
+                else -> value
+            }
+            Unit.FT -> when (to) {
+                Unit.INCH -> value * 12
+                Unit.YD -> value / 3
+                else -> value
+            }
+            Unit.INCH -> when (to) {
+                Unit.FT -> value / 12
+                Unit.YD -> value / 36
+                else -> value
+            }
+            Unit.YD -> when (to) {
+                Unit.FT -> value * 3
+                Unit.INCH -> value * 36
+                else -> value
+            }
+            Unit.KG -> when (to) {
+                Unit.LBS -> value * 2.20462f
+                else -> value
+            }
+            Unit.LBS -> when (to) {
+                Unit.KG -> value / 2.20462f
+                else -> value
+            }
         }
     }
 }
