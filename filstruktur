@@ -1,39 +1,45 @@
 app/
-└── src
-    └── main
-        └── java
-            └── no
-                └── steffenhove
-                    └── betongkalkulator
-                        ├── MainActivity.kt
-                        └── ui
-                            ├── components
-                            │   └── ConcreteTypeSelector.kt
-                            ├── model
-                            │   ├── AppDatabase.kt
-                            │   ├── Calculation.kt
-                            │   ├── CalculationDao.kt
-                            │   ├── CalculationEntity.kt
-                            │   ├── ConcreteType.kt
-                            │   ├── Form.kt
-                            │   ├── StringListConverter.kt
-                            │   └── Unit.kt
-                            ├── navigation
-                            │   └── AppNavigation.kt
-                            ├── screens
-                            │   ├── CalculationScreen.kt
-                            │   ├── HistoryScreen.kt
-                            │   ├── SettingsScreen.kt
-                            │   └── StartScreen.kt
-                            ├── theme
-                            │   ├── Color.kt
-                            │   ├── Type.kt
-                            │   └── BetongKalkulatorTheme.kt
-                            ├── utils
-                            │   ├── PreferencesHelper.kt
-                            │   └── UnitConverter.kt
-                            └── viewmodel
-                                ├── CalculationViewModel.kt
-                                ├── HistoryViewModel.kt
-                                ├── HistoryViewModelFactory.kt
-                                └── SettingsViewModel.kt
+└── src/
+    └── main/
+        └── java/
+            └── no/
+                └── steffenhove/
+                    └── betongkalkulator/
+                        ├── di/                          // Dependency Injection (Hilt) - Foreløpig tom
+                        │   └── AppModule.kt             // Opprettes senere
+                        ├── ui/                         // Brukergrensesnitt
+                        │   ├── components/             // Gjenbrukbare UI-komponenter
+                        │   │   ├── CalculationItem.kt
+                        │   │   ├── ConcreteTypeSelector.kt
+                        │   │   ├── NumberField.kt      // Vurder å bytte navn
+                        │   │   └── UnitSelector.kt
+                        │   ├── model/                  // Datamodeller og database
+                        │   │   ├── AppDatabase.kt
+                        │   │   ├── Calculation.kt
+                        │   │   ├── CalculationDao.kt
+                        │   │   ├── CalculationEntity.kt
+                        │   │   ├── ConcreteType.kt
+                        │   │   ├── Form.kt
+                        │   │   └── Unit.kt
+                        │   ├── navigation/             // Navigasjonslogikk
+                        │   │   └── AppNavigation.kt
+                        │   ├── repository/             // Repository
+                        │   │   └── CalculationRepository.kt
+                        │   ├── screens/                // Appens skjermer
+                        │   │   ├── CalculationScreen.kt
+                        │   │   ├── HistoryScreen.kt
+                        │   │   ├── SettingsScreen.kt
+                        │   │   └── StartScreen.kt
+                        │   └── theme/                  // Tema (farger, typografi)
+                        │       ├── Color.kt
+                        │       ├── Theme.kt
+                        │       └── Type.kt
+                        ├── utils/                      // Hjelpefunksjoner og utvidelser
+                        │   ├── PreferencesHelper.kt
+                        │   └── UnitConverter.kt
+                        ├── viewmodel/                  // ViewModels (kan flyttes til screens/ undermapper senere)
+                        │   ├── CalculationViewModel.kt
+                        │   ├── HistoryViewModel.kt
+                        │   ├── HistoryViewModelFactory.kt // Kan fjernes når du bruker Hilt
+                        │   └── SettingsViewModel.kt
+                        └── MainActivity.kt             // Appens startpunkt
