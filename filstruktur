@@ -1,0 +1,39 @@
+app/
+└── src
+    └── main
+        └── java
+            └── no
+                └── steffenhove
+                    └── betongkalkulator
+                        ├── MainActivity.kt
+                        └── ui
+                            ├── components
+                            │   └── ConcreteTypeSelector.kt
+                            ├── model
+                            │   ├── AppDatabase.kt
+                            │   ├── Calculation.kt
+                            │   ├── CalculationDao.kt
+                            │   ├── CalculationEntity.kt
+                            │   ├── ConcreteType.kt
+                            │   ├── Form.kt
+                            │   ├── StringListConverter.kt
+                            │   └── Unit.kt
+                            ├── navigation
+                            │   └── AppNavigation.kt
+                            ├── screens
+                            │   ├── CalculationScreen.kt
+                            │   ├── HistoryScreen.kt
+                            │   ├── SettingsScreen.kt
+                            │   └── StartScreen.kt
+                            ├── theme
+                            │   ├── Color.kt
+                            │   ├── Type.kt
+                            │   └── BetongKalkulatorTheme.kt
+                            ├── utils
+                            │   ├── PreferencesHelper.kt
+                            │   └── UnitConverter.kt
+                            └── viewmodel
+                                ├── CalculationViewModel.kt
+                                ├── HistoryViewModel.kt
+                                ├── HistoryViewModelFactory.kt
+                                └── SettingsViewModel.kt
