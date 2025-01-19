@@ -101,8 +101,16 @@ fun SettingsScreen(context: Context) {
             onValueChange = {
                 val newDensity = it.toDoubleOrNull()
                 if (newDensity != null) {
+                    val updatedConcreteTypes = concreteTypes.map { type ->
+                        if (type.name == selectedConcreteType.name) {
+                            type.copy(density = newDensity)
+                        } else {
+                            type
+                        }
+                    }
+                    concreteTypes = updatedConcreteTypes
                     selectedConcreteType = selectedConcreteType.copy(density = newDensity)
-                    saveConcreteTypesPreference(context, concreteTypes)
+                    saveConcreteTypesPreference(context, updatedConcreteTypes)
                 }
             },
             label = { Text("Tetthet (kg/m³)") },

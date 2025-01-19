@@ -14,5 +14,6 @@ data class CalculationEntity(
     val thickness: String,
     val density: Double,
     val result: Double,
+    val resultUnit: String,
     val timestamp: Long = Calendar.getInstance().timeInMillis
 )
