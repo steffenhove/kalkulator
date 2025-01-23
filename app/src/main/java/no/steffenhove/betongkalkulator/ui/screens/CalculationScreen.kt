@@ -34,7 +34,8 @@ fun CalculationScreen(context: Context) {
     var formExpanded by remember { mutableStateOf(false) }
 
     // Hent betongtyper
-    var selectedConcreteType by remember { mutableStateOf(getConcreteTypesPreference(context)[0]) }
+    var concreteTypes = getConcreteTypesPreference(context) + listOf(ConcreteType("Egendefinert", 0.0))
+    var selectedConcreteType by remember { mutableStateOf(concreteTypes[0]) }
     var concreteTypeExpanded by remember { mutableStateOf(false) }
 
     // Velg enhet for inntasting
@@ -182,7 +183,7 @@ fun CalculationScreen(context: Context) {
                     expanded = concreteTypeExpanded,
                     onDismissRequest = { concreteTypeExpanded = false }
                 ) {
-                    getConcreteTypesPreference(context).forEach { type ->
+                    concreteTypes.forEach { type ->
                         DropdownMenuItem(
                             text = { Text(text = type.name) },
                             onClick = {
@@ -194,6 +195,8 @@ fun CalculationScreen(context: Context) {
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Spesifiser egendefinert densitet hvis valgt
             if (selectedConcreteType.name == "Egendefinert") {
                 OutlinedTextField(
@@ -201,6 +204,7 @@ fun CalculationScreen(context: Context) {
                     onValueChange = { customDensity = it },
                     label = { Text("Egendefinert densitet (kg/m³)") },
                     modifier = Modifier.fillMaxWidth().focusRequester(focusRequester1),
+                    textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Next
@@ -225,6 +229,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { dimension1 = it },
                         label = { Text("Diameter (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester2),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
@@ -238,6 +243,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { thickness = it },
                         label = { Text("Tykkelse (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester3),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done
@@ -256,6 +262,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { dimension1 = it },
                         label = { Text("Lengde (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester2),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
@@ -269,6 +276,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { dimension2 = it },
                         label = { Text("Bredde (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester3),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
@@ -282,6 +290,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { thickness = it },
                         label = { Text("Tykkelse (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester4),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done
@@ -300,6 +309,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { dimension1 = it },
                         label = { Text("A-Side (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester2),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
@@ -313,6 +323,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { dimension2 = it },
                         label = { Text("B-Side (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester3),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
@@ -326,6 +337,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { dimension3 = it },
                         label = { Text("C-Side (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester4),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
@@ -339,6 +351,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { thickness = it },
                         label = { Text("Tykkelse (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester5),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done
@@ -357,6 +370,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { dimension1 = it },
                         label = { Text("A-Side (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester2),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
@@ -370,6 +384,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { dimension2 = it },
                         label = { Text("B-Side (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester3),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
@@ -383,6 +398,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { dimension3 = it },
                         label = { Text("C-Side (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester4),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
@@ -396,6 +412,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { dimension4 = it },
                         label = { Text("D-Side (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester5),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
@@ -409,6 +426,7 @@ fun CalculationScreen(context: Context) {
                         onValueChange = { thickness = it },
                         label = { Text("Tykkelse (${selectedUnit})") },
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester6),
+                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done
@@ -466,6 +484,7 @@ fun CalculationScreen(context: Context) {
         }
     }
 }
+
 fun calculate(
     selectedForm: String,
     selectedUnit: String,

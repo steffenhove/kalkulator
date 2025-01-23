@@ -114,6 +114,7 @@ fun SettingsScreen(context: Context) {
                 }
             },
             label = { Text("Tetthet (kg/m³)") },
+            textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
             modifier = Modifier.fillMaxWidth()
         )
 
