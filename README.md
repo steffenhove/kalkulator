@@ -68,6 +68,8 @@ Ved valg av Imperisk: Brukeren kan velge mellom fot og tommer.
 
 Brukeren kan bestemme om vekten skal vises i kg eller lbs (pund). 
 
+Bruker kan velge egen denistet for betong, leca og siporex, men standar er det vi setter og vi lager til en nullstill til standar knapp.
+
 Brukergrensesnitt 
 
 Startskjerm: 
@@ -85,6 +87,8 @@ Nedtrekksmeny for valg av betongtype.
 Beregningsknapp for å utføre kalkulasjonen. 
 
 Valg av mm, cm, m, ft eller tommer avhengig av valg i innstillinger. 
+
+mulighet til å skrive inn mål på flere måter. feks kan bruker velge og skrive inn i M og bruker skriver 1.25m vil app automatisk regne om dette til feks 1250mm eller 125cm før utregning. bør skje i bakgrunn, slik at bruker kunn ser evt m verdi som er intastet. 
 
 Historikk: 
 
