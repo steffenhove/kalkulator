@@ -1,0 +1,41 @@
+.
+├── app
+│   ├── build
+│   │   ├── generated
+│   │   ├── intermediates
+│   │   ├── kotlin
+│   │   ├── kspCaches
+│   │   ├── outputs
+│   │   └── tmp
+│   ├── build.gradle.kts
+│   ├── proguard-rules.pro
+│   ├── sampledata
+│   ├── schemas
+│   │   └── no.steffenhove.betongkalkulator.ui.model.AppDatabase
+│   └── src
+│       ├── androidTest
+│       ├── main
+│       └── test
+├── build
+│   └── kotlin
+│       └── sessions
+├── build.gradle.kts
+├── gradle
+│   └── wrapper
+│       ├── android
+│       ├── caches
+│       ├── daemon
+│       ├── gradle-wrapper.jar
+│       ├── gradle-wrapper.properties
+│       ├── kotlin-profile
+│       ├── native
+│       ├── workers
+│       └── wrapper
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── local.properties
+├── prosjektstruktur.txt
+└── settings.gradle.kts
+
+28 directories, 11 files
