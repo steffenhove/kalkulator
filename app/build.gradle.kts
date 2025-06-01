@@ -63,6 +63,7 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
+    implementation("androidx.compose.foundation:foundation-android:1.7.2")
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
     implementation("androidx.compose.compiler:compiler:1.5.15")
@@ -72,6 +73,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-common-java8:2.8.7")
     implementation("androidx.compose.runtime:runtime-livedata:1.7.6")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+    implementation("androidx.compose.material:material-icons-extended:1.5.4") // eller match din Compose-versjon
+    implementation("androidx.compose.ui:ui-text:1.5.4") // match evt. din Compose-versjon
 
 
     // JUnit 5 dependencies
