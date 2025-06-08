@@ -4,27 +4,12 @@ package no.steffenhove.betongkalkulator.ui.screens
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
@@ -37,12 +22,8 @@ import no.steffenhove.betongkalkulator.ui.components.DimensionField
 import no.steffenhove.betongkalkulator.ui.model.AppDatabase
 import no.steffenhove.betongkalkulator.ui.model.CalculationEntity
 import no.steffenhove.betongkalkulator.ui.model.ConcreteType
-import no.steffenhove.betongkalkulator.ui.utils.convertToMeters
-import no.steffenhove.betongkalkulator.ui.utils.getConcreteTypesPreference
-import no.steffenhove.betongkalkulator.ui.utils.getUnitSystemPreference
-import no.steffenhove.betongkalkulator.ui.utils.getWeightUnitPreference
-import no.steffenhove.betongkalkulator.ui.utils.loadPreference
-import no.steffenhove.betongkalkulator.ui.utils.savePreference
+import no.steffenhove.betongkalkulator.ui.utils.*
+
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -51,18 +32,20 @@ fun CalculationScreen(context: Context) {
     val navContext = LocalContext.current
     val unitSystem = getUnitSystemPreference(context)
     val weightUnit = getWeightUnitPreference(context)
+
     val metricUnits = listOf("mm", "cm", "m")
-    val units = if (unitSystem == "Metrisk") metricUnits else listOf("inch", "foot")
+    val imperialUnits = listOf("inch", "foot")
+    val units = if (unitSystem == "Metrisk") metricUnits else imperialUnits
+
     val forms = listOf("Kjerne", "Firkant", "Trekant", "Trapes")
 
     val concreteTypes = remember {
         val stored = getConcreteTypesPreference(context)
-        val updated = buildList {
+        buildList {
             addAll(stored)
             if (stored.none { it.name == "Asfalt" }) add(ConcreteType("Asfalt", 2300.0))
             if (stored.none { it.name == "Egendefinert" }) add(ConcreteType("Egendefinert", 0.0))
         }
-        updated
     }
 
     val scope = rememberCoroutineScope()
@@ -147,6 +130,15 @@ fun CalculationScreen(context: Context) {
         }
     }
 
+    // Automatisk oppdatering av selectedUnit ved enhetssystem-endring
+    LaunchedEffect(unitSystem) {
+        val validUnits = if (unitSystem == "Metrisk") metricUnits else imperialUnits
+        if (selectedUnit !in validUnits) {
+            selectedUnit = validUnits.first()
+        }
+    }
+
+    // Lagre preferanser
     LaunchedEffect(selectedForm) { savePreference(context, "selected_form", selectedForm) }
     LaunchedEffect(selectedUnit) { savePreference(context, "selected_unit", selectedUnit) }
     LaunchedEffect(selectedConcreteType) { savePreference(context, "selected_concrete_type", selectedConcreteType.name) }
@@ -191,9 +183,7 @@ fun CalculationScreen(context: Context) {
             Spacer(modifier = Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { performCalculation() }) { Text("Regn ut") }
-                Button(onClick = {
-                    showNoteField = true
-                }) { Text("Del") }
+                Button(onClick = { showNoteField = true }) { Text("Del") }
             }
             if (showNoteField) {
                 OutlinedTextField(
