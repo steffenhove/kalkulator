@@ -1,5 +1,4 @@
 package no.steffenhove.betongkalkulator.ui.model
-
 import com.google.gson.annotations.SerializedName
 
 data class OverskjaeringEntry(
