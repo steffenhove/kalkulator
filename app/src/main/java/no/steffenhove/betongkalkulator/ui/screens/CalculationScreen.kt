@@ -1,548 +1,246 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package no.steffenhove.betongkalkulator.ui.screens
 
 import android.content.Context
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
+import android.content.Intent
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import no.steffenhove.betongkalkulator.ui.model.*
-import no.steffenhove.betongkalkulator.ui.utils.*
-import java.text.DecimalFormat
+import no.steffenhove.betongkalkulator.ui.components.AppDropdown
+import no.steffenhove.betongkalkulator.ui.components.DimensionField
+import no.steffenhove.betongkalkulator.ui.model.AppDatabase
+import no.steffenhove.betongkalkulator.ui.model.CalculationEntity
+import no.steffenhove.betongkalkulator.ui.model.ConcreteType
+import no.steffenhove.betongkalkulator.ui.utils.convertToMeters
+import no.steffenhove.betongkalkulator.ui.utils.getConcreteTypesPreference
+import no.steffenhove.betongkalkulator.ui.utils.getUnitSystemPreference
+import no.steffenhove.betongkalkulator.ui.utils.getWeightUnitPreference
+import no.steffenhove.betongkalkulator.ui.utils.loadPreference
+import no.steffenhove.betongkalkulator.ui.utils.savePreference
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 @Composable
 fun CalculationScreen(context: Context) {
-    // Hent enhets- og vektpreferanser
+    val navContext = LocalContext.current
     val unitSystem = getUnitSystemPreference(context)
     val weightUnit = getWeightUnitPreference(context)
     val metricUnits = listOf("mm", "cm", "m")
     val units = if (unitSystem == "Metrisk") metricUnits else listOf("inch", "foot")
-
-    // Definer tilgjengelige former
     val forms = listOf("Kjerne", "Firkant", "Trekant", "Trapes")
-    var selectedForm by remember { mutableStateOf(forms[0]) }
-    var formExpanded by remember { mutableStateOf(false) }
 
-    // Hent betongtyper
-    var concreteTypes = getConcreteTypesPreference(context) + listOf(ConcreteType("Egendefinert", 0.0))
-    var selectedConcreteType by remember { mutableStateOf(concreteTypes[0]) }
-    var concreteTypeExpanded by remember { mutableStateOf(false) }
-
-    // Velg enhet for inntasting
-    var selectedUnit by remember { mutableStateOf(units[0]) }
-    var unitExpanded by remember { mutableStateOf(false) }
-
-    // Definer tilstandsvariabler for dimensjoner, tykkelse og densitet
-    var dimension1 by remember { mutableStateOf(TextFieldValue("")) }
-    var dimension2 by remember { mutableStateOf(TextFieldValue("")) }
-    var dimension3 by remember { mutableStateOf(TextFieldValue("")) }
-    var dimension4 by remember { mutableStateOf(TextFieldValue("")) }
-    var thickness by remember { mutableStateOf(TextFieldValue("")) }
-    var customDensity by remember { mutableStateOf(TextFieldValue("")) }
-    var result by remember { mutableStateOf(0.0) }
-    var errorMessage by remember { mutableStateOf("") }
+    val concreteTypes = remember {
+        val stored = getConcreteTypesPreference(context)
+        val updated = buildList {
+            addAll(stored)
+            if (stored.none { it.name == "Asfalt" }) add(ConcreteType("Asfalt", 2300.0))
+            if (stored.none { it.name == "Egendefinert" }) add(ConcreteType("Egendefinert", 0.0))
+        }
+        updated
+    }
 
     val scope = rememberCoroutineScope()
-    val keyboardController = LocalSoftwareKeyboardController.current
+    val keyboard = LocalSoftwareKeyboardController.current
 
-    // Fokusrekke for inntastingsfeltene
-    val focusRequester1 = remember { FocusRequester() }
-    val focusRequester2 = remember { FocusRequester() }
-    val focusRequester3 = remember { FocusRequester() }
-    val focusRequester4 = remember { FocusRequester() }
-    val focusRequester5 = remember { FocusRequester() }
-    val focusRequester6 = remember { FocusRequester() }
+    var selectedForm by rememberSaveable { mutableStateOf(loadPreference(context, "selected_form", forms[0])) }
+    var selectedUnit by rememberSaveable { mutableStateOf(loadPreference(context, "selected_unit", units[0])) }
+    var selectedConcreteType by remember {
+        val defaultTypeName = concreteTypes[0].name
+        val savedTypeName = loadPreference(context, "selected_concrete_type", defaultTypeName)
+        mutableStateOf(concreteTypes.find { it.name == savedTypeName } ?: concreteTypes[0])
+    }
+
+    val concreteDensity = remember { mutableStateOf(TextFieldValue()) }
+
+    val dim1 = remember { mutableStateOf(TextFieldValue()) }
+    val dim2 = remember { mutableStateOf(TextFieldValue()) }
+    val dim3 = remember { mutableStateOf(TextFieldValue()) }
+    val dim4 = remember { mutableStateOf(TextFieldValue()) }
+    val thickness = remember { mutableStateOf(TextFieldValue()) }
+
+    val note = remember { mutableStateOf(TextFieldValue()) }
+    var showNoteField by remember { mutableStateOf(false) }
+
+    var result by remember { mutableStateOf(0.0) }
+    var error by remember { mutableStateOf("") }
+
+    val f1 = remember { FocusRequester() }
+    val f2 = remember { FocusRequester() }
+    val f3 = remember { FocusRequester() }
+    val f4 = remember { FocusRequester() }
+    val f5 = remember { FocusRequester() }
+    val f6 = remember { FocusRequester() }
+
+    fun parse(input: TextFieldValue): Double =
+        input.text.replace(",", ".").replace("[^\\d.]".toRegex(), "").toDoubleOrNull() ?: 0.0
 
     fun performCalculation() {
-        // Hent og konverter dimensjoner og tykkelse
-        val dim1 = dimension1.text.replace(",", ".").replace("[^\\d.]".toRegex(), "").toDoubleOrNull() ?: 0.0
-        val dim2 = dimension2.text.replace(",", ".").replace("[^\\d.]".toRegex(), "").toDoubleOrNull() ?: 0.0
-        val dim3 = dimension3.text.replace(",", ".").replace("[^\\d.]".toRegex(), "").toDoubleOrNull() ?: 0.0
-        val dim4 = dimension4.text.replace(",", ".").replace("[^\\d.]".toRegex(), "").toDoubleOrNull() ?: 0.0
-        val thick = thickness.text.replace(",", ".").replace("[^\\d.]".toRegex(), "").toDoubleOrNull() ?: 0.0
+        val d1 = convertToMeters(dim1.value.text, selectedUnit) ?: 0.0
+        val d2 = convertToMeters(dim2.value.text, selectedUnit) ?: 0.0
+        val d3 = convertToMeters(dim3.value.text, selectedUnit) ?: 0.0
+        val d4 = convertToMeters(dim4.value.text, selectedUnit) ?: 0.0
+        val t = convertToMeters(thickness.value.text, selectedUnit) ?: 0.0
+        val density = if (selectedConcreteType.name == "Egendefinert") parse(concreteDensity.value) else selectedConcreteType.density
 
-        // Sjekk om nødvendige mål er fylt inn
-        if (dim1 == 0.0 || thick == 0.0 ||
-            (selectedForm == "Firkant" && dim2 == 0.0) ||
-            (selectedForm == "Trekant" && (dim2 == 0.0 || dim3 == 0.0)) ||
-            (selectedForm == "Trapes" && (dim2 == 0.0 || dim3 == 0.0 || dim4 == 0.0))
+        if ((selectedForm == "Kjerne" && d1 == 0.0) || t == 0.0 ||
+            (selectedForm == "Firkant" && (d1 == 0.0 || d2 == 0.0)) ||
+            (selectedForm == "Trekant" && (d1 == 0.0 || d2 == 0.0 || d3 == 0.0)) ||
+            (selectedForm == "Trapes" && (d1 == 0.0 || d2 == 0.0 || d3 == 0.0 || d4 == 0.0))
         ) {
-            errorMessage = "Vennligst fyll inn alle nødvendige mål."
-        } else {
-            errorMessage = ""
-            val density = if (selectedConcreteType.name == "Egendefinert") customDensity.text.replace(",", ".").toDoubleOrNull() ?: 0.0 else selectedConcreteType.density
+            error = "Fyll inn nødvendige mål."
+            return
+        }
 
-            // Utfør beregningen
-            result = calculate(
-                selectedForm,
-                selectedUnit,
-                dim1,
-                dim2,
-                dim3,
-                dim4,
-                thick,
-                density
-            )
-
-            // Konverter resultatet til lbs hvis nødvendig
-            val finalResult = if (weightUnit == "lbs") {
-                result * 2.20462  // Konverter kg til lbs
-            } else {
-                result
+        result = when (selectedForm) {
+            "Kjerne" -> Math.PI * (d1 / 2).pow(2) * t
+            "Firkant" -> d1 * d2 * t
+            "Trekant" -> 0.5 * d1 * d2 * t
+            "Trapes" -> {
+                val s = (d1 + d2 + d3 + d4) / 2
+                val area = sqrt((s - d1) * (s - d2) * (s - d3) * (s - d4))
+                area * t
             }
+            else -> 0.0
+        }.let { volume ->
+            if (weightUnit == "lbs") volume * density * 2.20462 else volume * density
+        }
 
-            // Formater resultatet til maks 2 desimaler før lagring i historikken
-            val formattedResult = DecimalFormat("#.##").format(finalResult).replace(",", ".").toDouble()
-
-            // Lagre beregningen i historikken
-            scope.launch {
-                val calculation = CalculationEntity(
+        scope.launch {
+            AppDatabase.getDatabase(context).calculationDao().insert(
+                CalculationEntity(
                     form = selectedForm,
                     unit = selectedUnit,
                     concreteType = selectedConcreteType.name,
-                    dimensions = "$dim1, $dim2, $dim3, $dim4",
-                    thickness = thick.toString(),
+                    dimensions = listOf(d1, d2, d3, d4).joinToString(),
+                    thickness = t.toString(),
                     density = density,
-                    result = formattedResult,
+                    result = result,
                     resultUnit = weightUnit
                 )
-                AppDatabase.getDatabase(context).calculationDao().insert(calculation)
-            }
+            )
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.padding(16.dp).fillMaxSize()
-    ) {
+    LaunchedEffect(selectedForm) { savePreference(context, "selected_form", selectedForm) }
+    LaunchedEffect(selectedUnit) { savePreference(context, "selected_unit", selectedUnit) }
+    LaunchedEffect(selectedConcreteType) { savePreference(context, "selected_concrete_type", selectedConcreteType.name) }
+
+    LazyColumn(modifier = Modifier.padding(16.dp)) {
         item {
-            // Velg form
-            Text(text = "Velg form:", style = MaterialTheme.typography.titleLarge)
-            Box {
-                TextButton(onClick = { formExpanded = !formExpanded }) {
-                    Text(selectedForm)
-                }
-                DropdownMenu(
-                    expanded = formExpanded,
-                    onDismissRequest = { formExpanded = false }
-                ) {
-                    forms.forEach { form ->
-                        DropdownMenuItem(
-                            text = { Text(text = form) },
-                            onClick = {
-                                selectedForm = form
-                                formExpanded = false
-                            }
-                        )
-                    }
-                }
+            AppDropdown("Form", forms, selectedForm) { selectedForm = it }
+            AppDropdown("Enhet", units, selectedUnit) { selectedUnit = it }
+            AppDropdown("Betongtype", concreteTypes.map { it.name }.sorted(), selectedConcreteType.name) {
+                selectedConcreteType = concreteTypes.first { type -> type.name == it }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Velg enhet for inntasting
-            Text(text = "Velg enhet for inntasting:", style = MaterialTheme.typography.titleLarge)
-            Box {
-                TextButton(onClick = { unitExpanded = !unitExpanded }) {
-                    Text(selectedUnit)
-                }
-                DropdownMenu(
-                    expanded = unitExpanded,
-                    onDismissRequest = { unitExpanded = false }
-                ) {
-                    units.forEach { unit ->
-                        DropdownMenuItem(
-                            text = { Text(text = unit) },
-                            onClick = {
-                                selectedUnit = unit
-                                unitExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Velg betongtype
-            Text(text = "Velg betongtype:", style = MaterialTheme.typography.titleLarge)
-            Box {
-                TextButton(onClick = { concreteTypeExpanded = !concreteTypeExpanded }) {
-                    Text(selectedConcreteType.name)
-                }
-                DropdownMenu(
-                    expanded = concreteTypeExpanded,
-                    onDismissRequest = { concreteTypeExpanded = false }
-                ) {
-                    concreteTypes.forEach { type ->
-                        DropdownMenuItem(
-                            text = { Text(text = type.name) },
-                            onClick = {
-                                selectedConcreteType = type
-                                concreteTypeExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Spesifiser egendefinert densitet hvis valgt
+            Text("Tetthet: ${selectedConcreteType.density} kg/m³", style = MaterialTheme.typography.bodySmall)
             if (selectedConcreteType.name == "Egendefinert") {
-                OutlinedTextField(
-                    value = customDensity,
-                    onValueChange = { customDensity = it },
-                    label = { Text("Egendefinert densitet (kg/m³)") },
-                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester1),
-                    textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusRequester2.requestFocus() }
-                    )
-                )
+                DimensionField(concreteDensity, "Densitet", "kg/m³", f1, f2)
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Fyll inn mål
-            Text(text = "Fyll inn mål:", style = MaterialTheme.typography.titleLarge)
         }
-
         item {
             when (selectedForm) {
                 "Kjerne" -> {
-                    OutlinedTextField(
-                        value = dimension1,
-                        onValueChange = { dimension1 = it },
-                        label = { Text("Diameter (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester2),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester3.requestFocus() }
-                        )
-                    )
-                    OutlinedTextField(
-                        value = thickness,
-                        onValueChange = { thickness = it },
-                        label = { Text("Tykkelse (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester3),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                keyboardController?.hide()
-                                performCalculation()
-                            }
-                        )
-                    )
+                    DimensionField(dim1, "Diameter", selectedUnit, f2, f3)
+                    DimensionField(thickness, "Tykkelse", selectedUnit, f3) { performCalculation() }
                 }
                 "Firkant" -> {
-                    OutlinedTextField(
-                        value = dimension1,
-                        onValueChange = { dimension1 = it },
-                        label = { Text("Lengde (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester2),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester3.requestFocus() }
-                        )
-                    )
-                    OutlinedTextField(
-                        value = dimension2,
-                        onValueChange = { dimension2 = it },
-                        label = { Text("Bredde (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester3),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester4.requestFocus() }
-                        )
-                    )
-                    OutlinedTextField(
-                        value = thickness,
-                        onValueChange = { thickness = it },
-                        label = { Text("Tykkelse (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester4),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                keyboardController?.hide()
-                                performCalculation()
-                            }
-                        )
-                    )
+                    DimensionField(dim1, "Lengde", selectedUnit, f2, f3)
+                    DimensionField(dim2, "Bredde", selectedUnit, f3, f4)
+                    DimensionField(thickness, "Tykkelse", selectedUnit, f4) { performCalculation() }
                 }
                 "Trekant" -> {
-                    OutlinedTextField(
-                        value = dimension1,
-                        onValueChange = { dimension1 = it },
-                        label = { Text("A-Side (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester2),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester3.requestFocus() }
-                        )
-                    )
-                    OutlinedTextField(
-                        value = dimension2,
-                        onValueChange = { dimension2 = it },
-                        label = { Text("B-Side (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester3),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester4.requestFocus() }
-                        )
-                    )
-                    OutlinedTextField(
-                        value = dimension3,
-                        onValueChange = { dimension3 = it },
-                        label = { Text("C-Side (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester4),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester5.requestFocus() }
-                        )
-                    )
-                    OutlinedTextField(
-                        value = thickness,
-                        onValueChange = { thickness = it },
-                        label = { Text("Tykkelse (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester5),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                keyboardController?.hide()
-                                performCalculation()
-                            }
-                        )
-                    )
+                    DimensionField(dim1, "A-Side", selectedUnit, f2, f3)
+                    DimensionField(dim2, "B-Side", selectedUnit, f3, f4)
+                    DimensionField(dim3, "C-Side", selectedUnit, f4, f5)
+                    DimensionField(thickness, "Tykkelse", selectedUnit, f5) { performCalculation() }
                 }
                 "Trapes" -> {
-                    OutlinedTextField(
-                        value = dimension1,
-                        onValueChange = { dimension1 = it },
-                        label = { Text("A-Side (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester2),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester3.requestFocus() }
-                        )
-                    )
-                    OutlinedTextField(
-                        value = dimension2,
-                        onValueChange = { dimension2 = it },
-                        label = { Text("B-Side (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester3),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester4.requestFocus() }
-                        )
-                    )
-                    OutlinedTextField(
-                        value = dimension3,
-                        onValueChange = { dimension3 = it },
-                        label = { Text("C-Side (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester4),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester5.requestFocus() }
-                        )
-                    )
-                    OutlinedTextField(
-                        value = dimension4,
-                        onValueChange = { dimension4 = it },
-                        label = { Text("D-Side (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester5),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester6.requestFocus() }
-                        )
-                    )
-                    OutlinedTextField(
-                        value = thickness,
-                        onValueChange = { thickness = it },
-                        label = { Text("Tykkelse (${selectedUnit})") },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester6),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                keyboardController?.hide()
-                                performCalculation()
-                            }
-                        )
-                    )
+                    DimensionField(dim1, "A-Side", selectedUnit, f2, f3)
+                    DimensionField(dim2, "B-Side", selectedUnit, f3, f4)
+                    DimensionField(dim3, "C-Side", selectedUnit, f4, f5)
+                    DimensionField(dim4, "D-Side", selectedUnit, f5, f6)
+                    DimensionField(thickness, "Tykkelse", selectedUnit, f6) { performCalculation() }
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            if (errorMessage.isNotEmpty()) {
-                Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = { performCalculation() }) { Text("Regn ut") }
+                Button(onClick = {
+                    showNoteField = true
+                }) { Text("Del") }
+            }
+            if (showNoteField) {
+                OutlinedTextField(
+                    value = note.value,
+                    onValueChange = { note.value = it },
+                    label = { Text("Valgfritt notat (f.eks. område, kunde, prosjekt)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Spacer(modifier = Modifier.height(8.dp))
-            }
+                Button(onClick = {
+                    val dims = listOf(dim1.value.text, dim2.value.text, dim3.value.text, dim4.value.text).filter { it.isNotBlank() }
+                    val thicknessText = thickness.value.text
+                    val formattedResult = java.text.DecimalFormat("#,###.##").format(result)
+                    val tonsFormatted = java.text.DecimalFormat("#,###.##").format(result / 1000)
+                    val tons = if (weightUnit == "kg" && result >= 1000) " / $tonsFormatted t" else ""
 
-            Button(onClick = {
-                performCalculation()
-            }) {
-                Text(text = "Regn ut")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Formater resultatet til maks 2 desimaler for visning
-            val displayResult = DecimalFormat("#.##").format(result)
-            val tonResult = if (result >= 1000) DecimalFormat("#.##").format(result / 1000) else null
-
-            // Konverter resultatet til lbs hvis nødvendig
-            val displayResultWithUnit = if (weightUnit == "lbs") {
-                val resultInLbs = result * 2.20462  // Konverter kg til lbs
-                DecimalFormat("#.##").format(resultInLbs) + " lbs"
-            } else {
-                displayResult + " kg"
-            }
-
-            val tonResultWithUnit = tonResult?.let {
-                if (weightUnit == "lbs") {
-                    val tonResultInLbs = it.toDouble() * 2204.62  // Konverter tonn til lbs
-                    DecimalFormat("#.##").format(tonResultInLbs) + " lbs"
-                } else {
-                    it + " t"
+                    val message = buildString {
+                        appendLine(selectedConcreteType.name)
+                        appendLine(
+                            if (selectedForm == "Kjerne")
+                                "Ø${dim1.value.text} $selectedUnit x $thicknessText $selectedUnit"
+                            else
+                                "${dims.joinToString(" x ")} $selectedUnit x $thicknessText $selectedUnit"
+                        )
+                        appendLine("$formattedResult $weightUnit$tons")
+                        if (note.value.text.isNotBlank()) {
+                            appendLine(note.value.text)
+                        }
+                    }
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, message)
+                    }
+                    navContext.startActivity(Intent.createChooser(intent, "Del kalkulasjon via"))
+                }) {
+                    Text("Del kalkulasjon")
                 }
             }
-
-            Text(text = "Resultat: $displayResultWithUnit", style = MaterialTheme.typography.bodyLarge)
-            tonResultWithUnit?.let {
-                Text(text = "Tonn: $it", style = MaterialTheme.typography.bodyLarge)
+            if (result > 0.0) {
+                val res = java.text.DecimalFormat("#,###.##").format(result)
+                val tonsFormatted = java.text.DecimalFormat("#,###.##").format(result / 1000)
+                val tons = if (weightUnit == "kg" && result >= 1000) " / $tonsFormatted t" else ""
+                SelectionContainer {
+                    Text("Resultat: $res $weightUnit$tons")
+                }
             }
-        }
-    }
-}
-
-fun calculate(
-    selectedForm: String,
-    selectedUnit: String,
-    dimension1: Double,
-    dimension2: Double,
-    dimension3: Double,
-    dimension4: Double,
-    thickness: Double,
-    density: Double
-): Double {
-    // Konverter dimensjoner til meter
-    val dim1 = convertToMeters(dimension1, selectedUnit)
-    val dim2 = convertToMeters(dimension2, selectedUnit)
-    val dim3 = convertToMeters(dimension3, selectedUnit)
-    val dim4 = convertToMeters(dimension4, selectedUnit)
-    val thick = convertToMeters(thickness, selectedUnit)
-
-    // Beregn volum basert på valgt form
-    val volume = when (selectedForm) {
-        "Kjerne" -> Math.PI * Math.pow(dim1 / 2, 2.0) * thick
-        "Firkant" -> dim1 * dim2 * thick
-        "Trekant" -> 0.5 * dim1 * dim2 * thick
-        "Trapes" -> {
-            val semiPerimeter = (dim1 + dim2 + dim3 + dim4) / 2
-            val area = Math.sqrt((semiPerimeter - dim1) * (semiPerimeter - dim2) * (semiPerimeter - dim3) * (semiPerimeter - dim4))
-            area * thick
-        }
-        else -> 0.0
-    }
-
-    // Returner vekten
-    return volume * density
-}
-
-fun convertToMeters(value: Double, unit: String): Double {
-    return when (unit) {
-        "mm" -> value / 1000
-        "cm" -> value / 100
-        "m" -> value
-        "inch" -> value * 0.0254
-        "foot" -> value * 0.3048
-        else -> value
-    }
-}
-
-fun formatWeight(weight: Double, unit: String): String {
-    val decimalFormat = DecimalFormat("#,###.##")
-    val kg = decimalFormat.format(weight)
-
-    return if (unit == "lbs") {
-        val lbs = decimalFormat.format(weight * 2.20462)
-        "$lbs lbs"
-    } else {
-        if (weight >= 1000) {
-            val tons = decimalFormat.format(weight / 1000)
-            "$kg kg / $tons t"
-        } else {
-            "$kg kg"
+            if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
         }
     }
 }

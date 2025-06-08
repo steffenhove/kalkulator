@@ -2,7 +2,7 @@ package no.steffenhove.betongkalkulator.ui.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.*
+import java.util.Calendar
 
 @Entity(tableName = "calculations")
 data class CalculationEntity(

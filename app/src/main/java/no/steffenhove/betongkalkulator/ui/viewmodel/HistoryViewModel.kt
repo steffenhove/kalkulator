@@ -1,6 +1,9 @@
 package no.steffenhove.betongkalkulator.ui.viewmodel
 
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import no.steffenhove.betongkalkulator.ui.model.CalculationEntity
 import no.steffenhove.betongkalkulator.ui.repository.CalculationRepository
