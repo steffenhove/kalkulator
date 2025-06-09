@@ -1,125 +1,128 @@
-App Beskrivelse: Betong Vekt Kalkulator 
+# 🧱 BetongKalkulator
 
-Navn: BetongKalkulator 
+**Smart kalkulator for betongsaging, kjerneborring og riving.**
 
-Hovedfunksjoner: 
+En brukervennlig app som hjelper deg å beregne vekt, volum, skjæredybde og plassering av løftepunkter. Laget av fagfolk – for fagfolk.
 
-Startskjerm: 
+---
 
-Tre valg: Beregning, Historikk, Innstillinger. 
+## 🚀 Hovedfunksjoner
 
-Beregning: 
+### 🔹 Startskjerm
+- Tre valg: **Beregning**, **Historikk**, **Innstillinger**
+- Ryddig layout med store knapper og intuitiv navigasjon
 
-Brukeren kan velge mellom tre former: 
+---
 
-Kjerne (Sylinder) 
+### 🔹 Vekt- og Volumkalkulator
+Velg form og få nøyaktig vekt basert på dimensjoner, valgt enhet og betongtype:
 
-Firkant 
+**Støttede former:**
+- Kjerne (Diameter + Tykkelse)
+- Firkant (Høyde, Bredde, Tykkelse)
+- Trekant (Side A, B, C + Tykkelse)
+- Trapes (Side A, B, C, D + Tykkelse)
 
-Trekant 
+**Funksjoner:**
+- Enhetsvalg: mm, cm, m, inch, foot (styres fra innstillinger)
+- Automatisk omregning ved inntasting (f.eks. "1.25 m" → "1250 mm" i bakgrunnen)
+- Valg av betongtype:
+  - Betong, Leca, Siporex, Egendefinert
+- Resultat vises i kg og tonn (dersom over 1000 kg)
+- Mulighet for å kopiere eller dele resultat
 
-Trapes 
+---
 
-Etter valg av form, kan brukeren taste inn dimensjoner: 
+### 🔹 Overskjæringskalkulator
+Finn ut hvor dypt bladet faktisk skjærer basert på tykkelse og diameter:
 
-For Kjerne: Diameter (D) og Tykkelse (T). 
+- Dropdown for faste bladstørrelser (600–1600 mm)
+- Manuell innlegging av betongtykkelse
+- Interpolasjon mellom verdier i overskjæringstabell
+- Viser:
+  - Minimum og maksimum skjæredybde
+  - Anbefalt minimum kjerneborringshull
+  - Advarsel hvis blad ikke rekker gjennom
 
-For Firkant: Høyde (H) og Bredde (B) og Tykkelse 
+---
 
-For Trekant: A-Side, B-Side, C-Side og Tykkelse. (ikke matematisk trekant)  
+### 🔹 Løftepunktkalkulator *(Ny funksjon – 2025)*
+Få forslag til hvor festepunkter bør plasseres for stabile løft:
 
-For Trapes:  A-Side, B-Side, C-Side, D-Side og Tykkelse 
+- Støtte for Kjerne, Firkant, Trekant, Trapes
+- Automatisk beregning av vekt basert på form og dimensjoner
+- Velg antall festepunkter: 1, 2, 3, 4, 6
+- Tekstlig forklaring av plassering (f.eks. "ca. 50 cm fra kant A og 50 cm fra kant B")
+- Tar hensyn til valgt enhet og form
+- Historikk og deling kommer
 
- 
+---
 
-Brukeren kan velge enhet for inntasting (mm, cm, m, ft, inch avhengig av hva som er valgt i innstilinger.) ved hjelp av knapper. Den valgte enheten vises tydelig ved inntastingsfeltet. 
+### 🔹 Historikk
+- Viser siste 20 kalkulasjoner med dato og klokkeslett
+- Viser form, dimensjoner, tetthet og resultat
+- Funksjoner:
+  - Merk én eller flere linjer
+  - Slett valgte (med bekreftelse)
+  - Summer valgte (viser totalvekt)
+  - Del valgte (inkl. notat, form og resultat)
+  - Slett alt (med bekreftelse)
 
-Brukeren kan velge betongtype fra en nedtrekksmeny: 
+---
 
-Betong 
+### 🔹 Innstillinger
+- **Enhetssystem:**
+  - Metrisk (mm, cm, m)
+  - Imperialsk (inch, foot)
+- **Vektenhet:** kg eller lbs
+- **Betongtype og tetthet:**
+  - Standardverdier (kan tilpasses)
+  - Nullstill til standard-knapp
+- **Språkvalg:** Kommer
+- **Utviklerinfo:** Kommer
 
-Leca 
+---
 
-Siporex 
+## ⚙️ Teknologi
 
-Egendefinert (brukeren kan legge inn densitet selv). 
+- Kotlin (Android)
+- Jetpack Compose (Material 3)
+- MVVM + Room + SharedPreferences
+- Enhetskonvertering og inputvalidering
+- Lokal lagring og enkel deling
 
-Beregningen utføres basert på valgt form, dimensjoner og betongtype, og resultatet vises tydelig. (Vises i både kg og tonn ved vekt over 1000kg.) 
+---
 
-Historikk: 
+## 🎯 Målgruppe
 
-Viser de siste 20 kalkulasjonene. (med dato og klokkeslett) (lagring gjennom forskjellige økter) 
+- Betongsagere
+- Kjerneborrere
+- Riveentreprenører
+- Entreprenører og tekniske fagfolk
 
-Brukeren kan merke av én eller flere linjer for: 
+---
 
-Slette valgte linjer. (med bekreftelse) 
+## 🛠 Planlagt videreutvikling
 
-Summere valgte linjer (viser totalvekt). 
+- Illustrasjoner for løftepunkt og former
+- Vinkelfesteberegning
+- PDF-eksport
+- Søke-/filterfunksjon i historikk
+- Reklame og kjøp for reklamefri versjon
+- Offentlig lansering (Google Play)
 
-En Slett alt-knapp med bekreftelse for å fjerne all historikk. 
+---
 
-Innstillinger: 
+## 📝 Lisens
 
-Brukeren kan velge mellom Metrisk og Imperisk system. 
+MIT License – se `LICENSE`-filen for detaljer.
 
-Ved valg av Metrisk: Brukeren kan velge mellom mm, cm eller m for inntasting. 
+---
 
-Ved valg av Imperisk: Brukeren kan velge mellom fot og tommer. 
+## 📬 Kontakt og tilbakemelding
 
-Brukeren kan bestemme om vekten skal vises i kg eller lbs (pund). 
+Ønsker eller feil?  
+Opprett en [issue](https://github.com/steffenhove/kalkulator/issues) – eller ta kontakt direkte.
 
-Bruker kan velge egen denistet for betong, leca og siporex, men standar er det vi setter og vi lager til en nullstill til standar knapp.
+---
 
-Brukergrensesnitt 
-
-Startskjerm: 
-
-Store knapper for Beregning, Historikk, og Innstillinger. 
-
-Beregning: 
-
-Nedtrekksmeny for valg av form (Kjerne, Firkant, Trekant). 
-
-Inntastingsfelt for dimensjoner med enhetssymboler ved siden av. 
-
-Nedtrekksmeny for valg av betongtype. 
-
-Beregningsknapp for å utføre kalkulasjonen. 
-
-Valg av mm, cm, m, ft eller tommer avhengig av valg i innstillinger. 
-
-mulighet til å skrive inn mål på flere måter. feks kan bruker velge og skrive inn i M og bruker skriver 1.25m vil app automatisk regne om dette til feks 1250mm eller 125cm før utregning. bør skje i bakgrunn, slik at bruker kunn ser evt m verdi som er intastet. 
-
-Historikk: 
-
-Listevisning av de siste 20 kalkulasjonene med mulighet for å merke enkelt linjer. 
-
-Knapper for Slett valgte og Summere valgte. 
-
-Slett alt-knapp med bekreftelse. 
-
-Innstillinger: 
-
-Valgknapper for Metrisk og Imperisk system. (Endre valg i kalkulator avhengig av valg her) 
-
-Valg av vektmåling (kg eller lbs). (endre visning i kalkulator og historikk avhengig av valg her. (ikke tidligere utregnet vekt)) 
-
-Språkvalg. (legges inn når all annen kode er ok) 
-
-Utviklerinfo (legges inn når all annen kode er ok) 
-
-Div: 
-
-Vurdere å legge ut offentlig. 
-
-Vurdere reklamebasert. 
-
-Vurdere kjøp i app for å slippe reklame. 
-
- 
-
- 
-
- 
-
- 
