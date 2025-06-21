@@ -15,13 +15,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import no.steffenhove.betongkalkulator.ui.navigation.AppNavigation
-import no.steffenhove.betongkalkulator.ui.theme.BetongKalkulatorTheme
+import no.steffenhove.betongkalkulator.ui.theme.KalkulatorTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BetongKalkulatorTheme {
+            KalkulatorTheme {
                 val navController = rememberNavController()
                 AppNavigation(navController)
             }

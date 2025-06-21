@@ -1,92 +1,95 @@
 package no.steffenhove.betongkalkulator.ui.viewmodel
 
-import android.app.Application
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import android.content.Context
+import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import no.steffenhove.betongkalkulator.ui.model.OverskjaeringData
-import no.steffenhove.betongkalkulator.ui.model.OverskjaeringResult
-import no.steffenhove.betongkalkulator.ui.utils.loadOverskjaeringData
+import no.steffenhove.betongkalkulator.ui.utils.AppPreferenceManager
+import kotlin.math.pow
+import kotlin.math.sqrt
 
-class OverskjaeringViewModel(application: Application) : AndroidViewModel(application) {
+class OverskjaeringViewModel : ViewModel() {
 
-    // Laster inn og sorterer dataene én gang når ViewModelen opprettes
-    private val overskjaeringDataList: List<OverskjaeringData> = loadOverskjaeringData(application).sortedBy { it.bladeSize }
+    private val _bladeSizeInput = MutableStateFlow("")
+    val bladeSizeInput: StateFlow<String> = _bladeSizeInput
 
-    // State for å holde på det gyldige resultatet
-    private val _result = MutableStateFlow<OverskjaeringResult?>(null)
-    val result: StateFlow<OverskjaeringResult?> = _result
+    private val _thicknessInput = MutableStateFlow("")
+    val thicknessInput: StateFlow<String> = _thicknessInput
 
-    // State for å holde på info- eller feilmeldinger til brukeren
-    private val _infoMessage = MutableStateFlow<String?>(null)
-    val infoMessage: StateFlow<String?> = _infoMessage
+    private val _minCut = MutableStateFlow<Double?>(null)
+    val minCut: StateFlow<Double?> = _minCut
 
-    init {
-        // Skriver ut en loggmelding når ViewModelen er klar, for feilsøking
-        Log.d("OverskjæringViewModel", "ViewModel initialisert. Antall blad-datatyper lastet: ${overskjaeringDataList.size}")
+    private val _maxCut = MutableStateFlow<Double?>(null)
+    val maxCut: StateFlow<Double?> = _maxCut
+
+    private val _minBoreDiameter = MutableStateFlow<Double?>(null)
+    val minBoreDiameter: StateFlow<Double?> = _minBoreDiameter
+
+    private val _maxBoreDiameter = MutableStateFlow<Double?>(null)
+    val maxBoreDiameter: StateFlow<Double?> = _maxBoreDiameter
+
+    fun setBladeSizeInput(value: String) {
+        _bladeSizeInput.value = value
     }
 
-    fun calculate(bladDiameter: Int, betongTykkelseCm: Int) {
-        // Nullstiller tidligere meldinger og resultater ved hver nye beregning
-        _infoMessage.value = null
-        _result.value = null
+    fun setThicknessInput(value: String) {
+        _thicknessInput.value = value
+    }
 
-        // Finner riktig sett med data for valgt bladdiameter
-        val bladDataMap = overskjaeringDataList.find { it.bladeSize == bladDiameter }?.data
+    fun calculate(context: Context) {
+        val bladeMm = _bladeSizeInput.value.replace(",", ".").toDoubleOrNull() ?: return
+        val thicknessStr = _thicknessInput.value
 
-        // Hvis vi ikke fant data for det valgte bladet, sett en feilmelding
-        if (bladDataMap == null) {
-            _infoMessage.value = "Fant ikke data for Ø$bladDiameter mm blad."
-            return
-        }
+        val unit = AppPreferenceManager.getLastOverskjaeringUnit(context)
 
-        // Sjekker om den valgte tykkelsen er større enn det bladet kan håndtere
-        val maksTykkelseForBlad = bladDataMap.keys.maxOrNull() ?: 0
-        if (betongTykkelseCm > maksTykkelseForBlad) {
-            // Finner det minste bladet som er større enn det valgte, og som kan håndtere tykkelsen
-            val anbefaltBlad = overskjaeringDataList.find {
-                it.bladeSize > bladDiameter && (it.data.keys.maxOrNull() ?: 0) >= betongTykkelseCm
+        val thicknessMeters = try {
+            val value = thicknessStr.replace(",", ".").toDouble()
+            when (unit) {
+                "mm" -> value / 1000.0
+                "cm" -> value / 100.0
+                "m" -> value
+                "inch" -> value * 0.0254
+                "foot" -> value * 0.3048
+                else -> null
             }
-            val anbefaltBladTekst = anbefaltBlad?.let { "Ø${it.bladeSize} mm eller større." } ?: "et større blad."
-            _infoMessage.value = "Ø$bladDiameter mm er for lite for $betongTykkelseCm cm betong.\nAnbefalt blad: $anbefaltBladTekst"
-            return
+        } catch (e: Exception) {
+            null
         }
 
-        // Finner nærmeste lavere og høyere betongtykkelse i tabellen for interpolasjon
-        val lavereTykkelseKey = bladDataMap.keys.filter { it <= betongTykkelseCm }.maxOrNull()
-        val hoyereTykkelseKey = bladDataMap.keys.filter { it >= betongTykkelseCm }.minOrNull()
+        val maksimalSkjaeredybde = when (bladeMm.toInt()) {
+            600 -> 24.0
+            700 -> 28.0
+            750 -> 30.0
+            800 -> 32.5
+            900 -> 36.5
+            1000 -> 42.0
+            1200 -> 52.0
+            1500 -> 62.0
+            1600 -> 72.0
+            else -> (bladeMm * 0.45) / 10.0 // fallback for ukjent blad
+        } // cm
 
-        if (lavereTykkelseKey == null || hoyereTykkelseKey == null) {
-            _infoMessage.value = "Ugyldig betongtykkelse for det valgte bladet."
-            return
+        val tilgjengeligRadius = maksimalSkjaeredybde * 10.0 // mm
+
+        if (thicknessMeters != null && thicknessMeters > 0.0) {
+            val tykkelseMm = thicknessMeters * 1000.0
+
+            val minimalSkjaering = sqrt(4 * tilgjengeligRadius * tykkelseMm - tykkelseMm.pow(2))
+            val maksimalSkjaering = 2 * tilgjengeligRadius
+
+            val overkappMin = maksimalSkjaering - tykkelseMm
+            val overkappMax = minimalSkjaering - tykkelseMm
+
+            _minCut.value = minimalSkjaering / 10.0 // til cm
+            _maxCut.value = maksimalSkjaering / 10.0 // til cm
+
+            _minBoreDiameter.value = overkappMax
+            _maxBoreDiameter.value = overkappMin
+        } else {
+            _minCut.value = null
+            _maxCut.value = null
+            _minBoreDiameter.value = null
+            _maxBoreDiameter.value = null
         }
-
-        // Henter ut verdiene (Overkapp, Skjæredybde) for interpolasjon
-        val (overkapp1_cm, minSkjaering1_cm) = bladDataMap[lavereTykkelseKey]!!
-        val (overkapp2_cm, minSkjaering2_cm) = bladDataMap[hoyereTykkelseKey]!!
-
-        val interpolertOverkappCm: Float
-        val interpolertMinSkjaeringCm: Float
-
-        if (lavereTykkelseKey == hoyereTykkelseKey) { // Eksakt treff i tabellen
-            interpolertOverkappCm = overkapp1_cm
-            interpolertMinSkjaeringCm = minSkjaering1_cm
-        } else { // Lineær interpolasjon
-            val t = (betongTykkelseCm - lavereTykkelseKey).toFloat() / (hoyereTykkelseKey - lavereTykkelseKey).toFloat()
-            interpolertOverkappCm = overkapp1_cm + t * (overkapp2_cm - overkapp1_cm)
-            interpolertMinSkjaeringCm = minSkjaering1_cm + t * (minSkjaering2_cm - minSkjaering1_cm)
-        }
-
-        // Beregn minste borehull basert på overkapp-lengden.
-        // Hvis overkapp kan være negativt (som i noen tabeller), settes borehullet til 0.
-        val minBorehullMm = if (interpolertOverkappCm > 0) interpolertOverkappCm * 10f else 0f
-
-        // Setter det endelige, gyldige resultatet
-        _result.value = OverskjaeringResult(
-            minSkjaeringCm = interpolertMinSkjaeringCm,
-            maksSkjaeringCm = interpolertOverkappCm,
-            minBorehullMm = minBorehullMm
-        )
     }
 }

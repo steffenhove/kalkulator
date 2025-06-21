@@ -199,3 +199,7 @@ fun formatWeight(weight: Double, unit: String): String {
 fun getUnitOptions(system: String): List<String> {
     return if (system == "Imperialsk") listOf("inch", "foot") else listOf("mm", "cm", "m")
 }
+fun getUnitPreference(context: Context): UnitPreference {
+    val unit = loadPreference(context, "selected_unit", "cm")
+    return UnitPreference.fromString(unit)
+}

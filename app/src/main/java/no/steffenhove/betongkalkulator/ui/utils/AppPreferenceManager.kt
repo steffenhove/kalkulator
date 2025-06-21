@@ -7,34 +7,27 @@ import no.steffenhove.betongkalkulator.ui.model.ConcreteType
 
 object AppPreferenceManager {
 
-    // --- Felles konstanter ---
     private const val PREFERENCES_NAME = "betongkalkulator_preferences"
 
-    // --- Globale nøkler ---
     private const val UNIT_SYSTEM_KEY = "unit_system"
     private const val WEIGHT_UNIT_KEY = "weight_unit"
     private const val CONCRETE_TYPES_KEY = "concrete_types"
 
-    // --- Kalkulator ---
     private const val SELECTED_FORM_KEY = "selected_form"
     private const val SELECTED_UNIT_KEY = "selected_unit"
     private const val SELECTED_CONCRETE_TYPE_KEY = "selected_concrete_type"
 
-    // --- Løftepunkt ---
     private const val LIFT_FORM_KEY = "lift_last_form"
     private const val LIFT_UNIT_KEY = "lift_last_unit"
     private const val LIFT_COUNT_KEY = "lift_last_feste_count"
 
-    // --- Festepunkt ---
     private const val FESTE_UNIT_KEY = "festepunkt_unit"
 
-    // --- Overskjæring ---
     private const val OVERSKJAERING_UNIT_KEY = "overskjaering_unit"
     private const val OVERSKJAERING_BLADE_KEY = "overskjaering_blade"
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-    // --- Grunnleggende ---
     fun savePreference(context: Context, key: String, value: String) {
         prefs(context).edit().putString(key, value).apply()
     }
@@ -43,7 +36,6 @@ object AppPreferenceManager {
         return prefs(context).getString(key, defaultValue) ?: defaultValue
     }
 
-    // --- Globale preferanser ---
     fun getUnitSystemPreference(context: Context): String =
         loadPreference(context, UNIT_SYSTEM_KEY, "Metrisk")
 
@@ -56,12 +48,19 @@ object AppPreferenceManager {
     fun saveWeightUnitPreference(context: Context, weightUnit: String) =
         savePreference(context, WEIGHT_UNIT_KEY, weightUnit)
 
+    fun getLengthUnitPreference(context: Context): String =
+        loadPreference(context, SELECTED_UNIT_KEY, "cm")
+
     fun getConcreteTypesPreference(context: Context): List<ConcreteType> {
-        val json = loadPreference(context, CONCRETE_TYPES_KEY, "")
-        return if (json.isNotEmpty()) {
-            val type = object : TypeToken<List<ConcreteType>>() {}.type
-            Gson().fromJson(json, type)
-        } else getDefaultConcreteTypes()
+        return try {
+            val json = loadPreference(context, CONCRETE_TYPES_KEY, "")
+            if (json.isNotEmpty()) {
+                val type = object : TypeToken<List<ConcreteType>>() {}.type
+                Gson().fromJson(json, type)
+            } else getDefaultConcreteTypes()
+        } catch (e: Exception) {
+            getDefaultConcreteTypes()
+        }
     }
 
     fun saveConcreteTypesPreference(context: Context, types: List<ConcreteType>) =
@@ -81,7 +80,6 @@ object AppPreferenceManager {
         saveConcreteTypesPreference(context, getDefaultConcreteTypes())
     }
 
-    // --- Kalkulatorpreferanser ---
     fun getLastCalculatorPreferences(context: Context): Triple<String, String, String> {
         val form = loadPreference(context, SELECTED_FORM_KEY, "Firkant")
         val unit = loadPreference(context, SELECTED_UNIT_KEY, "cm")
@@ -95,7 +93,6 @@ object AppPreferenceManager {
         savePreference(context, SELECTED_CONCRETE_TYPE_KEY, type)
     }
 
-    // --- Løftepunktpreferanser ---
     fun getLastLiftPreferences(context: Context): Triple<String, String, Int> {
         val form = loadPreference(context, LIFT_FORM_KEY, "Firkant")
         val unit = loadPreference(context, LIFT_UNIT_KEY, "cm")
@@ -111,14 +108,12 @@ object AppPreferenceManager {
             .apply()
     }
 
-    // --- Festepunktpreferanser ---
     fun getLastFestepunktUnit(context: Context): String =
         loadPreference(context, FESTE_UNIT_KEY, "cm")
 
     fun saveLastFestepunktUnit(context: Context, unit: String) =
         savePreference(context, FESTE_UNIT_KEY, unit)
 
-    // --- Overskjæringpreferanser ---
     fun getLastOverskjaeringUnit(context: Context): String =
         loadPreference(context, OVERSKJAERING_UNIT_KEY, "cm")
 
@@ -132,17 +127,16 @@ object AppPreferenceManager {
         prefs(context).edit().putInt(OVERSKJAERING_BLADE_KEY, bladeSize).apply()
     }
 
-    // --- Generell preferansehåndtering for valgfri skjerm ---
     fun getLastUsedValues(context: Context, screenKey: String): Triple<String, String, String> {
-        val form = loadPreference(context, "${screenKey}_form", "")
-        val unit = loadPreference(context, "${screenKey}_unit", "")
-        val type = loadPreference(context, "${screenKey}_type", "")
+        val form = loadPreference(context, "\${screenKey}_form", "")
+        val unit = loadPreference(context, "\${screenKey}_unit", "")
+        val type = loadPreference(context, "\${screenKey}_type", "")
         return Triple(form, unit, type)
     }
 
     fun saveLastUsedValues(context: Context, screenKey: String, form: String, unit: String, type: String = "") {
-        savePreference(context, "${screenKey}_form", form)
-        savePreference(context, "${screenKey}_unit", unit)
-        savePreference(context, "${screenKey}_type", type)
+        savePreference(context, "\${screenKey}_form", form)
+        savePreference(context, "\${screenKey}_unit", unit)
+        savePreference(context, "\${screenKey}_type", type)
     }
 }
