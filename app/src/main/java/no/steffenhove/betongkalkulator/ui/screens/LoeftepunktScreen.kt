@@ -1,6 +1,5 @@
 package no.steffenhove.betongkalkulator.ui.screens
 
-import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -20,8 +19,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import no.steffenhove.betongkalkulator.ui.components.AppDropdown
+import no.steffenhove.betongkalkulator.ui.components.InputField
 import no.steffenhove.betongkalkulator.ui.utils.AppPreferenceManager
-import no.steffenhove.betongkalkulator.ui.utils.convertToMeters
 import no.steffenhove.betongkalkulator.ui.viewmodel.LøftepunktViewModel
 
 @Composable
@@ -33,8 +32,8 @@ fun LoeftepunktScreen(viewModel: LøftepunktViewModel = viewModel()) {
     val unitSystem = AppPreferenceManager.getUnitSystemPreference(context)
     val unitOptions = if (unitSystem == "Metrisk") listOf("mm", "cm", "m") else listOf("inch", "foot")
     val formOptions = listOf("Kjerne", "Firkant", "Trekant", "Trapes")
-    val antallFesterOptions = listOf("1", "2", "3", "4", "6")
     val festetyper = listOf("Innvendig", "Utvendig")
+    val antallFesterOptions = listOf("1", "2", "3", "4", "6")
 
     val (initialForm, initialUnit, initialCount) = AppPreferenceManager.getLastLiftPreferences(context)
 
@@ -49,8 +48,31 @@ fun LoeftepunktScreen(viewModel: LøftepunktViewModel = viewModel()) {
     var dInput by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue()) }
 
     var resultText by remember { mutableStateOf<String?>(null) }
+    var feilmelding by remember { mutableStateOf("") }
+
+    fun validerFester() {
+        val (minFester, maxFester) = when (selectedForm) {
+            "Kjerne" -> 1 to 1
+            "Firkant" -> 2 to 6
+            "Trekant" -> 3 to 4
+            "Trapes" -> 3 to 6
+            else -> 1 to 6
+        }
+
+        val antall = selectedAntallFester.toIntOrNull() ?: 0
+        feilmelding = if (antall in minFester..maxFester) {
+            ""
+        } else {
+            "Velg mellom $minFester og $maxFester festepunkter for $selectedForm."
+        }
+    }
+
+    LaunchedEffect(selectedForm, selectedAntallFester) {
+        validerFester()
+    }
 
     fun performCalculation() {
+        if (feilmelding.isNotEmpty()) return
         keyboardController?.hide()
 
         AppPreferenceManager.saveLastLiftPreferences(
@@ -85,10 +107,8 @@ fun LoeftepunktScreen(viewModel: LøftepunktViewModel = viewModel()) {
         AppDropdown("Enhet", unitOptions, selectedUnit) { selectedUnit = it }
 
         when (selectedForm) {
-            "Kjerne" -> {
-                InputField("Diameter ($selectedUnit)", aInput, { aInput = it }, ImeAction.Done) {
-                    performCalculation()
-                }
+            "Kjerne" -> InputField("Diameter ($selectedUnit)", aInput, { aInput = it }, ImeAction.Done) {
+                performCalculation()
             }
             "Firkant" -> {
                 InputField("Bredde ($selectedUnit)", aInput, { aInput = it }, ImeAction.Next)
@@ -113,8 +133,13 @@ fun LoeftepunktScreen(viewModel: LøftepunktViewModel = viewModel()) {
             }
         }
 
+        if (feilmelding.isNotEmpty()) {
+            Text(feilmelding, color = MaterialTheme.colorScheme.error)
+        }
+
         Button(
             onClick = { performCalculation() },
+            enabled = feilmelding.isEmpty(),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Beregn")

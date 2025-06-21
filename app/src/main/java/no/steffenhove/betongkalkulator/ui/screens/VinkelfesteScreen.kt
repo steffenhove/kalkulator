@@ -20,6 +20,7 @@ import no.steffenhove.betongkalkulator.ui.components.AppDropdown
 import no.steffenhove.betongkalkulator.ui.components.DimensionField
 import no.steffenhove.betongkalkulator.ui.utils.convertToMeters
 import no.steffenhove.betongkalkulator.ui.utils.getUnitSystemPreference
+import no.steffenhove.betongkalkulator.ui.utils.AppPreferenceManager
 import kotlin.math.PI
 import kotlin.math.cos
 
@@ -32,14 +33,29 @@ fun VinkelfesteScreen(context: Context = LocalContext.current) {
     val imperialUnits = listOf("inch", "foot")
     val unitOptions = if (unitSystem == "Imperialsk") imperialUnits else metricUnits
 
-    var selectedUnit by rememberSaveable { mutableStateOf(unitOptions.first()) }
+    // --- Hent lagrede verdier eller sett default ---
+    val savedUnit = remember { mutableStateOf(AppPreferenceManager.getLastFestepunktUnit(context).takeIf { it in unitOptions } ?: unitOptions.first()) }
+    val savedFeste = remember { mutableStateOf(AppPreferenceManager.loadPreference(context, "vinkelfeste_feste", "")) }
+    val savedVinkel = remember { mutableStateOf(AppPreferenceManager.loadPreference(context, "vinkelfeste_vinkel", "")) }
 
-    val festeTfv = rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-    val vinkelTfv = rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+    var selectedUnit by rememberSaveable { mutableStateOf(savedUnit.value) }
+    val festeTfv = rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(savedFeste.value)) }
+    val vinkelTfv = rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(savedVinkel.value)) }
     var resultat by rememberSaveable { mutableStateOf("") }
 
     val focusFeste = remember { FocusRequester() }
     val focusVinkel = remember { FocusRequester() }
+
+    // --- Synkroniser lagring ved endring ---
+    LaunchedEffect(selectedUnit) {
+        AppPreferenceManager.saveLastFestepunktUnit(context, selectedUnit)
+    }
+    LaunchedEffect(festeTfv.value.text) {
+        AppPreferenceManager.savePreference(context, "vinkelfeste_feste", festeTfv.value.text)
+    }
+    LaunchedEffect(vinkelTfv.value.text) {
+        AppPreferenceManager.savePreference(context, "vinkelfeste_vinkel", vinkelTfv.value.text)
+    }
 
     LaunchedEffect(unitSystem) {
         if (selectedUnit !in unitOptions) {

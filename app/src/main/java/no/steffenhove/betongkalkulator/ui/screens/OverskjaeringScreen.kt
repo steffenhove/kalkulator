@@ -1,96 +1,123 @@
 package no.steffenhove.betongkalkulator.ui.screens
 
-import android.content.Context
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import no.steffenhove.betongkalkulator.ui.components.AppDropdown
 import no.steffenhove.betongkalkulator.ui.utils.AppPreferenceManager
 import no.steffenhove.betongkalkulator.ui.utils.convertToMeters
-import no.steffenhove.betongkalkulator.ui.viewmodel.OverskjaeringViewModel
+
 
 @Composable
-fun OverskjaeringScreen(context: Context, viewModel: OverskjaeringViewModel = viewModel()) {
+fun OverskjaeringScreen() {
+    val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val unitSystem = AppPreferenceManager.getUnitSystemPreference(context)
-    val scrollState = rememberScrollState()
 
-    val metricUnits = listOf("mm", "cm", "m")
-    val imperialUnits = listOf("inch", "foot")
-    val unitOptions = if (unitSystem == "Metrisk") metricUnits else imperialUnits
+    val defaultUnit = AppPreferenceManager.getLastOverskjaeringUnit(context)
+    val defaultBlade = AppPreferenceManager.getLastOverskjaeringBlade(context)
 
-    val bladeOptions = listOf("600", "700", "750", "800", "900", "1000", "1200", "1500", "1600")
+    var selectedUnit by rememberSaveable { mutableStateOf(defaultUnit) }
+    var selectedBlade by rememberSaveable { mutableIntStateOf(defaultBlade) }
+    var thicknessInput by rememberSaveable { mutableStateOf("") }
+    var resultText by rememberSaveable { mutableStateOf("") }
 
-    val (initialBlade, initialUnit, _) = AppPreferenceManager.getLastUsedValues(context, "overskjaering")
-
-    var selectedBlade by rememberSaveable { mutableStateOf(initialBlade.ifBlank { "800" }) }
-    var selectedUnit by rememberSaveable { mutableStateOf(initialUnit.ifBlank { unitOptions.first() }) }
-    var thicknessInput by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue()) }
-
-    val result by viewModel.result.collectAsState()
-    val infoMessage by viewModel.infoMessage.collectAsState()
-
-    fun performCalculation() {
-        val thickness = convertToMeters(thicknessInput.text, selectedUnit) ?: 0.0
-        val blade = selectedBlade.toIntOrNull() ?: 800
-
-        viewModel.calculate(blade, (thickness * 100).toInt()) // thickness i cm
-
-        AppPreferenceManager.saveLastUsedValues(context, "overskjaering", selectedBlade, selectedUnit)
-        keyboardController?.hide()
+    LaunchedEffect(selectedUnit) {
+        AppPreferenceManager.saveLastOverskjaeringUnit(context, selectedUnit)
+    }
+    LaunchedEffect(selectedBlade) {
+        AppPreferenceManager.saveLastOverskjaeringBlade(context, selectedBlade)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        AppDropdown("Bladdiameter", bladeOptions, selectedBlade) { selectedBlade = it }
-        AppDropdown("Enhet", unitOptions, selectedUnit) { selectedUnit = it }
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
+
+        Text("Overskjæringskalkulator", style = MaterialTheme.typography.titleLarge)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        AppDropdown(
+            label = "Enhet",
+            options = listOf("mm", "cm", "m", "inch", "foot"),
+            selectedOption = selectedUnit,
+            onOptionSelected = { selectedUnit = it }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        AppDropdown(
+            label = "Bladdiameter",
+            options = listOf(600, 700, 750, 800, 900, 1000, 1200, 1500, 1600).map { it.toString() },
+            selectedOption = selectedBlade.toString(),
+            onOptionSelected = { selectedBlade = it.toInt() }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = thicknessInput,
             onValueChange = { thicknessInput = it },
-            label = { Text("Betongtykkelse ($selectedUnit)") },
-            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Betongtykkelse") },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Done
             ),
-            keyboardActions = KeyboardActions(onDone = { performCalculation() })
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
-
-        Button(onClick = { performCalculation() }, modifier = Modifier.fillMaxWidth()) {
-            Text("Beregn overskjæring")
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        infoMessage?.let {
-            Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
+        Button(onClick = {
+            val thicknessMeters = convertToMeters(thicknessInput, selectedUnit)
+            if (thicknessMeters == null) {
+                resultText = "Ugyldig tykkelse"
+                return@Button
+            }
+
+            val radius = selectedBlade / 2000.0 // diameter / 2 / 1000 for m
+            val minCut = radius - 0.144 // 144mm spindel
+            val maxCut = radius // teoretisk
+
+            val overskjaerer = minCut > thicknessMeters
+            val anbefaltKjerne = if (overskjaerer)
+                "Anbefalt å bore hull min. "+"%.0f".format(thicknessMeters * 1000 + 50)+" mm i diameter for å unngå overskjæring."
+            else
+                "Ingen overskjæring nødvendig."
+
+            resultText = "Min skjæredybde: ${"%.1f".format(minCut)} m\n" +
+                    "Maks skjæredybde: ${"%.1f".format(maxCut)} m\n" +
+                    anbefaltKjerne
+
+            keyboardController?.hide()
+        }) {
+            Text("Beregn")
         }
 
-        result?.let {
-            Text("Min. skjæredybde: ${"%.1f".format(it.minSkjaeringCm)} cm")
-            Text("Maks. skjæredybde: ${"%.1f".format(it.maksSkjaeringCm)} cm")
-            Text("Min. borehull: ${"%.0f".format(it.minBorehullMm)} mm")
-        }
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(resultText, style = MaterialTheme.typography.bodyLarge)
     }
 }

@@ -29,10 +29,10 @@ fun AppNavigation(navController: NavHostController) {
             HistoryScreen(navController.context)
         }
         composable("festepunkt") {
-            VinkelfesteScreen(navController.context)
+            VinkelfesteScreen()
         }
         composable("overskjaering") {
-            OverskjaeringScreen(navController.context)
+            OverskjaeringScreen()
         }
         composable("loeftepunkt") {
             LoeftepunktScreen(viewModel())
