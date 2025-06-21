@@ -1,0 +1,25 @@
+
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sylinder -->
+  <ellipse cx="150" cy="50" rx="60" ry="20" fill="none" stroke="black" stroke-width="2"/>
+  <rect x="90" y="50" width="120" height="100" fill="none" stroke="black" stroke-width="2"/>
+  <ellipse cx="150" cy="150" rx="60" ry="20" fill="none" stroke="black" stroke-width="2"/>
+
+  <!-- Diameter (A) -->
+  <line x1="90" y1="40" x2="210" y2="40" stroke="blue" stroke-width="1" marker-start="url(#startArrow)" marker-end="url(#endArrow)"/>
+  <text x="140" y="30" font-size="14" text-anchor="middle" fill="blue">A (Diameter)</text>
+
+  <!-- Tykkelse (B) -->
+  <line x1="225" y1="50" x2="225" y2="150" stroke="green" stroke-width="1" marker-start="url(#startArrow)" marker-end="url(#endArrow)"/>
+  <text x="230" y="100" font-size="14" fill="green">B (Tykkelse)</text>
+
+  <!-- Piler -->
+  <defs>
+    <marker id="startArrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="10 0, 10 7, 0 3.5" fill="black"/>
+    </marker>
+    <marker id="endArrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 0 7, 10 3.5" fill="black"/>
+    </marker>
+  </defs>
+</svg>

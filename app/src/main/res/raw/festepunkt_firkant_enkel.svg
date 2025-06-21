@@ -1,0 +1,37 @@
+
+<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Firkant -->
+  <rect x="50" y="50" width="200" height="200" fill="none" stroke="black" stroke-width="2"/>
+
+  <!-- Kantnavn -->
+  <text x="150" y="40" font-size="14" text-anchor="middle" fill="black">A</text> <!-- topp -->
+  <text x="150" y="275" font-size="14" text-anchor="middle" fill="black">A</text> <!-- bunn -->
+  <text x="35" y="150" font-size="14" text-anchor="middle" transform="rotate(-90,35,150)" fill="black">B</text> <!-- venstre -->
+  <text x="265" y="150" font-size="14" text-anchor="middle" transform="rotate(90,265,150)" fill="black">B</text> <!-- høyre -->
+
+  <!-- Piler fra kant til festepunkt -->
+  <line x1="50" y1="90" x2="90" y2="90" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="90" y1="50" x2="90" y2="90" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <line x1="250" y1="90" x2="210" y2="90" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="210" y1="50" x2="210" y2="90" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <line x1="50" y1="210" x2="90" y2="210" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="90" y1="250" x2="90" y2="210" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <line x1="250" y1="210" x2="210" y2="210" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="210" y1="250" x2="210" y2="210" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Festepunkter -->
+  <text x="90" y="95" font-size="20" fill="red">X</text>
+  <text x="210" y="95" font-size="20" fill="red">X</text>
+  <text x="90" y="225" font-size="20" fill="red">X</text>
+  <text x="210" y="225" font-size="20" fill="red">X</text>
+
+  <!-- Marker definisjon -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="blue"/>
+    </marker>
+  </defs>
+</svg>

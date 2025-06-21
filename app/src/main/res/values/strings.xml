@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Betongkalkulator</string>
+    <string name="settings">Innstillinger</string>
+    <string name="dark_mode">Mørk modus</string>
+    <string name="unit_system">Enhetssystem</string>
+    <string name="language">Språk</string>
+    <string name="weight_unit">Vektenhet</string>
+    <string name="metric">Metrisk</string>
+    <string name="imperial">Imperial</string>
+    <string name="kg">kg</string>
+    <string name="lbs">lbs</string>
+    <string name="calculate">Beregn</string>
+    <!-- Legg til flere strenger her -->
+</resources>

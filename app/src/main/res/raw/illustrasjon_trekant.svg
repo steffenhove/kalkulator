@@ -1,0 +1,20 @@
+
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="80,130 220,130 150,40" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Sider -->
+  <text x="70" y="135" font-size="14" fill="blue">A</text>
+  <text x="225" y="135" font-size="14" fill="green">B</text>
+  <text x="150" y="35" font-size="14" fill="red">C</text>
+  <!-- Tykkelse -->
+  <line x1="240" y1="60" x2="240" y2="130" stroke="orange" stroke-width="1" marker-start="url(#startArrow)" marker-end="url(#endArrow)"/>
+  <text x="245" y="100" font-size="14" fill="orange">D (Tykkelse)</text>
+
+  <defs>
+    <marker id="startArrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="10 0, 10 7, 0 3.5" fill="black"/>
+    </marker>
+    <marker id="endArrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 0 7, 10 3.5" fill="black"/>
+    </marker>
+  </defs>
+</svg>

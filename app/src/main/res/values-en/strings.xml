@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Concrete Calculator</string>
+    <string name="settings">Settings</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="unit_system">Unit System</string>
+    <string name="language">Language</string>
+    <string name="weight_unit">Weight Unit</string>
+    <string name="metric">Metric</string>
+    <string name="imperial">Imperial</string>
+    <string name="kg">kg</string>
+    <string name="lbs">lbs</string>
+    <string name="calculate">Calculate</string>
+    <!-- Add more strings here -->
+</resources>

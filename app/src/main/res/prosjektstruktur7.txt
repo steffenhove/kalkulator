@@ -1,0 +1,43 @@
+.
+├── drawable
+│   ├── ic_launcher_background.xml
+│   └── ic_launcher_foreground.xml
+├── mipmap-anydpi-v26
+│   ├── ic_launcher.xml
+│   └── ic_launcher_round.xml
+├── mipmap-hdpi
+│   ├── ic_launcher.webp
+│   └── ic_launcher_round.webp
+├── mipmap-mdpi
+│   ├── ic_launcher.webp
+│   └── ic_launcher_round.webp
+├── mipmap-xhdpi
+│   ├── ic_launcher.webp
+│   └── ic_launcher_round.webp
+├── mipmap-xxhdpi
+│   ├── ic_launcher.webp
+│   └── ic_launcher_round.webp
+├── mipmap-xxxhdpi
+│   ├── ic_launcher.webp
+│   └── ic_launcher_round.webp
+├── navigation
+├── prosjektstruktur7.txt
+├── values
+│   ├── attrs.xml
+│   ├── colors.xml
+│   ├── strings.xml
+│   ├── styles.xml
+│   └── themes.xml
+├── values-da-rDK
+├── values-en
+│   └── strings.xml
+├── values-nb
+├── values-night
+│   ├── colors.xml
+│   └── themes.xml
+├── values-sv-rSE
+└── xml
+    ├── backup_rules.xml
+    └── data_extraction_rules.xml
+
+16 directories, 25 files

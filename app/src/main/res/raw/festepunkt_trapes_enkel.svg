@@ -1,0 +1,29 @@
+
+<svg width="300" height="250" xmlns="http://www.w3.org/2000/svg">
+  <!-- Trapes -->
+  <polygon points="100,60 200,60 240,200 60,200" fill="none" stroke="black" stroke-width="2"/>
+
+  <!-- Kantnavn -->
+  <text x="150" y="50" font-size="14" text-anchor="middle" fill="black">A</text> <!-- topp -->
+  <text x="150" y="215" font-size="14" text-anchor="middle" fill="black">B</text> <!-- bunn -->
+  <text x="55" y="130" font-size="14" fill="black" transform="rotate(-90,55,130)">C</text> <!-- venstre -->
+  <text x="245" y="130" font-size="14" fill="black" transform="rotate(90,245,130)">D</text> <!-- høyre -->
+
+  <!-- Piler for måleretning -->
+  <line x1="100" y1="60" x2="100" y2="100" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="200" y1="60" x2="200" y2="100" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="80" y1="200" x2="120" y2="180" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="220" y1="200" x2="180" y2="180" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Festepunkter -->
+  <text x="100" y="110" font-size="20" fill="red">X</text>
+  <text x="200" y="110" font-size="20" fill="red">X</text>
+  <text x="120" y="190" font-size="20" fill="red">X</text>
+  <text x="180" y="190" font-size="20" fill="red">X</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="blue"/>
+    </marker>
+  </defs>
+</svg>

@@ -1,0 +1,26 @@
+
+<svg width="300" height="250" xmlns="http://www.w3.org/2000/svg">
+  <!-- Trekant -->
+  <polygon points="80,200 220,200 150,50" fill="none" stroke="black" stroke-width="2"/>
+
+  <!-- Kantnavn -->
+  <text x="150" y="215" font-size="14" text-anchor="middle" fill="black">A</text> <!-- bunn -->
+  <text x="215" y="130" font-size="14" fill="black">B</text> <!-- høyre -->
+  <text x="75" y="130" font-size="14" fill="black">C</text> <!-- venstre -->
+
+  <!-- Piler som viser måleretning -->
+  <line x1="80" y1="195" x2="115" y2="170" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="220" y1="195" x2="185" y2="170" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="150" y1="50" x2="150" y2="100" stroke="blue" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Festepunkter -->
+  <text x="110" y="170" font-size="20" fill="red">X</text>
+  <text x="190" y="170" font-size="20" fill="red">X</text>
+  <text x="145" y="110" font-size="20" fill="red">X</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="blue"/>
+    </marker>
+  </defs>
+</svg>

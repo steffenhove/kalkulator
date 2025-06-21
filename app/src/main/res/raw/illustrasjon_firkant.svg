@@ -1,0 +1,22 @@
+
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect x="60" y="30" width="120" height="100" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Bredde (A) -->
+  <line x1="60" y1="20" x2="180" y2="20" stroke="blue" stroke-width="1" marker-start="url(#startArrow)" marker-end="url(#endArrow)"/>
+  <text x="120" y="10" font-size="14" text-anchor="middle" fill="blue">A (Bredde)</text>
+  <!-- Høyde (B) -->
+  <line x1="190" y1="30" x2="190" y2="130" stroke="green" stroke-width="1" marker-start="url(#startArrow)" marker-end="url(#endArrow)"/>
+  <text x="195" y="85" font-size="14" fill="green">B (Høyde)</text>
+  <!-- Tykkelse (C) -->
+  <line x1="60" y1="150" x2="180" y2="150" stroke="red" stroke-width="1" marker-start="url(#startArrow)" marker-end="url(#endArrow)"/>
+  <text x="120" y="165" font-size="14" text-anchor="middle" fill="red">C (Tykkelse)</text>
+
+  <defs>
+    <marker id="startArrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="10 0, 10 7, 0 3.5" fill="black"/>
+    </marker>
+    <marker id="endArrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 0 7, 10 3.5" fill="black"/>
+    </marker>
+  </defs>
+</svg>
