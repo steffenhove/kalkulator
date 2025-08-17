@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import no.steffenhove.betongkalkulator.ui.model.ConcreteType
+import no.steffenhove.betongkalkulator.ui.model.UnitPreference
 
 object AppPreferenceManager {
 
@@ -128,15 +129,20 @@ object AppPreferenceManager {
     }
 
     fun getLastUsedValues(context: Context, screenKey: String): Triple<String, String, String> {
-        val form = loadPreference(context, "\${screenKey}_form", "")
-        val unit = loadPreference(context, "\${screenKey}_unit", "")
-        val type = loadPreference(context, "\${screenKey}_type", "")
+        val form = loadPreference(context, "${screenKey}_form", "")
+        val unit = loadPreference(context, "${screenKey}_unit", "")
+        val type = loadPreference(context, "${screenKey}_type", "")
         return Triple(form, unit, type)
     }
 
     fun saveLastUsedValues(context: Context, screenKey: String, form: String, unit: String, type: String = "") {
-        savePreference(context, "\${screenKey}_form", form)
-        savePreference(context, "\${screenKey}_unit", unit)
-        savePreference(context, "\${screenKey}_type", type)
+        savePreference(context, "${screenKey}_form", form)
+        savePreference(context, "${screenKey}_unit", unit)
+        savePreference(context, "${screenKey}_type", type)
+    }
+
+    fun getUnitPreference(context: Context): UnitPreference {
+        val unit = loadPreference(context, SELECTED_UNIT_KEY, "cm")
+        return UnitPreference.fromString(unit)
     }
 }
