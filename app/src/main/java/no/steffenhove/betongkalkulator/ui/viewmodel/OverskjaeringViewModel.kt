@@ -1,95 +1,124 @@
 package no.steffenhove.betongkalkulator.ui.viewmodel
 
-import android.content.Context
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import no.steffenhove.betongkalkulator.ui.utils.AppPreferenceManager
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.ceil
+
+/**
+ * Data som UI viser.
+ *
+ * wallThicknessValue  = tallet du skrev inn (f.eks. 20.0)
+ * wallThicknessUnit   = "mm" eller "cm"
+ * min/maxOvercutValue = i SAMME enhet som tykkelsen (mm/cm)
+ * recommendedHoleMm   = alltid i mm (borehull oppgis alltid i mm)
+ */
+data class OverskjaeringResult(
+    val bladeDiameterMm: Int,
+    val wallThicknessValue: Double,
+    val wallThicknessUnit: String,
+    val minOvercutValue: Double?,
+    val maxOvercutValue: Double?,
+    val overcutUnit: String,
+    val recommendedHoleMm: Int?
+)
 
 class OverskjaeringViewModel : ViewModel() {
 
-    private val _bladeSizeInput = MutableStateFlow("")
-    val bladeSizeInput: StateFlow<String> = _bladeSizeInput
+    private val calculator = OverskjaeringCalculator()
 
-    private val _thicknessInput = MutableStateFlow("")
-    val thicknessInput: StateFlow<String> = _thicknessInput
+    // Bladdiameter – default Ø1000 mm (kan du endre som du vil)
+    var selectedBladeDiameter by mutableStateOf(1000)
+        private set
 
-    private val _minCut = MutableStateFlow<Double?>(null)
-    val minCut: StateFlow<Double?> = _minCut
+    // Tykkelsesinput som tekst
+    var thicknessInput by mutableStateOf("")
+        private set
 
-    private val _maxCut = MutableStateFlow<Double?>(null)
-    val maxCut: StateFlow<Double?> = _maxCut
+    // Enhet for tykkelse (og overkutt i UI) – "mm" eller "cm"
+    var selectedThicknessUnit by mutableStateOf("cm")
+        private set
 
-    private val _minBoreDiameter = MutableStateFlow<Double?>(null)
-    val minBoreDiameter: StateFlow<Double?> = _minBoreDiameter
+    // Resultat fra siste beregning
+    var result by mutableStateOf<OverskjaeringResult?>(null)
+        private set
 
-    private val _maxBoreDiameter = MutableStateFlow<Double?>(null)
-    val maxBoreDiameter: StateFlow<Double?> = _maxBoreDiameter
+    // Feilmelding (vises i UI hvis ikke null)
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
 
-    fun setBladeSizeInput(value: String) {
-        _bladeSizeInput.value = value
+    // -------------------  Oppdatering fra UI  -------------------
+
+    fun onBladeSelected(bladeMm: Int) {
+        selectedBladeDiameter = bladeMm
     }
 
-    fun setThicknessInput(value: String) {
-        _thicknessInput.value = value
+    fun onThicknessChanged(text: String) {
+        thicknessInput = text
     }
 
-    fun calculate(context: Context) {
-        val bladeMm = _bladeSizeInput.value.replace(",", ".").toDoubleOrNull() ?: return
-        val thicknessStr = _thicknessInput.value
+    fun onUnitSelected(unit: String) {
+        selectedThicknessUnit = unit
+    }
 
-        val unit = AppPreferenceManager.getLastOverskjaeringUnit(context)
+    // -------------------  Beregning  -------------------
 
-        val thicknessMeters = try {
-            val value = thicknessStr.replace(",", ".").toDouble()
-            when (unit) {
-                "mm" -> value / 1000.0
-                "cm" -> value / 100.0
-                "m" -> value
-                "inch" -> value * 0.0254
-                "foot" -> value * 0.3048
-                else -> null
+    fun calculate() {
+        val raw = thicknessInput.replace(',', '.').trim()
+
+        val thicknessValue = raw.toDoubleOrNull()
+        if (thicknessValue == null || thicknessValue <= 0.0) {
+            errorMessage = "Ugyldig tykkelse"
+            result = null
+            return
+        }
+
+        // Konverter tykkelse til mm for kalkulatoren
+        val thicknessMm = when (selectedThicknessUnit) {
+            "mm" -> thicknessValue
+            "cm" -> thicknessValue * 10.0
+            else -> thicknessValue
+        }
+
+        val (minOvercutMm, maxOvercutMm) =
+            calculator.calculate(selectedBladeDiameter, thicknessMm)
+
+        if (minOvercutMm == null && maxOvercutMm == null) {
+            errorMessage = "Ingen tabellverdier for valgt kombinasjon."
+            result = null
+            return
+        }
+
+        // Overkutt vises i samme enhet som brukeren skrev inn
+        fun convertOvercutToUiUnit(valueMm: Double?): Double? {
+            return valueMm?.let {
+                when (selectedThicknessUnit) {
+                    "mm" -> it
+                    "cm" -> it / 10.0
+                    else -> it
+                }
             }
-        } catch (e: Exception) {
-            null
         }
 
-        val maksimalSkjaeredybde = when (bladeMm.toInt()) {
-            600 -> 24.0
-            700 -> 28.0
-            750 -> 30.0
-            800 -> 32.5
-            900 -> 36.5
-            1000 -> 42.0
-            1200 -> 52.0
-            1500 -> 62.0
-            1600 -> 72.0
-            else -> (bladeMm * 0.45) / 10.0 // fallback for ukjent blad
-        } // cm
+        val minUi = convertOvercutToUiUnit(minOvercutMm)
+        val maxUi = convertOvercutToUiUnit(maxOvercutMm)
 
-        val tilgjengeligRadius = maksimalSkjaeredybde * 10.0 // mm
-
-        if (thicknessMeters != null && thicknessMeters > 0.0) {
-            val tykkelseMm = thicknessMeters * 1000.0
-
-            val minimalSkjaering = sqrt(4 * tilgjengeligRadius * tykkelseMm - tykkelseMm.pow(2))
-            val maksimalSkjaering = 2 * tilgjengeligRadius
-
-            val overkappMin = maksimalSkjaering - tykkelseMm
-            val overkappMax = minimalSkjaering - tykkelseMm
-
-            _minCut.value = minimalSkjaering / 10.0 // til cm
-            _maxCut.value = maksimalSkjaering / 10.0 // til cm
-
-            _minBoreDiameter.value = overkappMax
-            _maxBoreDiameter.value = overkappMin
-        } else {
-            _minCut.value = null
-            _maxCut.value = null
-            _minBoreDiameter.value = null
-            _maxBoreDiameter.value = null
+        // Anbefalt borehull (alltid mm):
+        // enkel regel: 2 * maxOverkutt + 20 mm margin
+        val recommendedHoleMm = maxOvercutMm?.let {
+            ceil(it * 2.0 + 20.0).toInt()
         }
+
+        result = OverskjaeringResult(
+            bladeDiameterMm = selectedBladeDiameter,
+            wallThicknessValue = thicknessValue,
+            wallThicknessUnit = selectedThicknessUnit,
+            minOvercutValue = minUi,
+            maxOvercutValue = maxUi,
+            overcutUnit = selectedThicknessUnit,
+            recommendedHoleMm = recommendedHoleMm
+        )
+        errorMessage = null
     }
 }

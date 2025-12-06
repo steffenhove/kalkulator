@@ -1,41 +1,77 @@
 package no.steffenhove.betongkalkulator.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import no.steffenhove.betongkalkulator.ui.screens.CalculationScreen
-import no.steffenhove.betongkalkulator.ui.screens.VinkelfesteScreen
 import no.steffenhove.betongkalkulator.ui.screens.HistoryScreen
 import no.steffenhove.betongkalkulator.ui.screens.LoeftepunktScreen
 import no.steffenhove.betongkalkulator.ui.screens.OverskjaeringScreen
 import no.steffenhove.betongkalkulator.ui.screens.SettingsScreen
 import no.steffenhove.betongkalkulator.ui.screens.StartScreen
+import no.steffenhove.betongkalkulator.ui.screens.VinkelfesteScreen
 
 @Composable
-fun AppNavigation(navController: NavHostController) {
-    NavHost(navController, startDestination = "start") {
+fun AppNavigation() {
+    val navController = rememberNavController()
+    val context = LocalContext.current
+
+    NavHost(
+        navController = navController,
+        startDestination = "start"
+    ) {
+
+        // Startskjerm
         composable("start") {
-            StartScreen(navController)
+            StartScreen(
+                navigateToCalculation = { navController.navigate("calculation") },
+                navigateToHistory = { navController.navigate("history") },
+                navigateToSettings = { navController.navigate("settings") },
+                navigateToVinkelfeste = { navController.navigate("vinkelfeste") },
+                navigateToOverskjaering = { navController.navigate("overskjaering") },
+                navigateToLoeftepunkt = { navController.navigate("loftepunkt") }
+            )
         }
-        composable("settings") {
-            SettingsScreen(navController.context)
+
+        // Beregning
+        composable("calculation") {
+            CalculationScreen(
+                context = context,
+                navigateBack = { navController.popBackStack() }
+            )
         }
-        composable("calculator") {
-            CalculationScreen(navController.context)
-        }
+
+        // Historikk
         composable("history") {
-            HistoryScreen(navController.context)
+            HistoryScreen(
+                navigateBack = { navController.popBackStack() }
+            )
         }
-        composable("festepunkt") {
-            VinkelfesteScreen()
+
+        // Innstillinger – ingen tilbakeknapp i denne versjonen
+        composable("settings") {
+            SettingsScreen()
         }
+
+        // Overskjæring
         composable("overskjaering") {
             OverskjaeringScreen()
         }
-        composable("loeftepunkt") {
-            LoeftepunktScreen(viewModel())
+
+        // Vinkelfeste
+        composable("vinkelfeste") {
+            VinkelfesteScreen(
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // Løftepunkt
+        composable("loftepunkt") {
+            LoeftepunktScreen(
+                navigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

@@ -15,7 +15,7 @@ private val LightColorPalette = lightColorScheme(
     onPrimary = LightOnPrimary,
     onSecondary = LightOnSecondary,
     onBackground = LightOnBackground,
-    onSurface = LightOnSurface
+    onSurface = LightOnSurface,
 )
 
 private val DarkColorPalette = darkColorScheme(
@@ -27,19 +27,15 @@ private val DarkColorPalette = darkColorScheme(
     onPrimary = DarkOnPrimary,
     onSecondary = DarkOnSecondary,
     onBackground = DarkOnBackground,
-    onSurface = DarkOnSurface
+    onSurface = DarkOnSurface,
 )
 
 @Composable
-fun KalkulatorTheme(
+fun BetongkalkulatorTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) {
-        DarkColorPalette
-    } else {
-        LightColorPalette
-    }
+    val colors = if (darkTheme) DarkColorPalette else LightColorPalette
 
     MaterialTheme(
         colorScheme = colors,
@@ -47,3 +43,13 @@ fun KalkulatorTheme(
         content = content
     )
 }
+
+/**
+ * Legacy-navn – så gammel kode fortsatt bygger.
+ * Etter hvert kan vi rydde og bruke bare BetongkalkulatorTheme.
+ */
+@Composable
+fun KalkulatorTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) = BetongkalkulatorTheme(darkTheme, content)

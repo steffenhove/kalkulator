@@ -4,7 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import no.steffenhove.betongkalkulator.ui.model.ConcreteType
-import no.steffenhove.betongkalkulator.ui.model.UnitPreference
+import no.steffenhove.betongkalkulator.ui.utils.UnitPreference
 
 object AppPreferenceManager {
 

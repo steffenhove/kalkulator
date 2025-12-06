@@ -1,135 +1,269 @@
 package no.steffenhove.betongkalkulator.ui.screens
 
-import android.content.Context
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.focus.FocusRequester
 import no.steffenhove.betongkalkulator.ui.components.AppDropdown
-import no.steffenhove.betongkalkulator.ui.components.DimensionField
+import no.steffenhove.betongkalkulator.ui.components.AppScaffold
+import no.steffenhove.betongkalkulator.ui.components.InputField
+import no.steffenhove.betongkalkulator.ui.utils.AppPreferenceManager
 import no.steffenhove.betongkalkulator.ui.utils.convertToMeters
 import no.steffenhove.betongkalkulator.ui.utils.getUnitSystemPreference
-import no.steffenhove.betongkalkulator.ui.utils.AppPreferenceManager
 import kotlin.math.PI
 import kotlin.math.cos
 
 @Composable
-fun VinkelfesteScreen(context: Context = LocalContext.current) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val unitSystem = getUnitSystemPreference(context)
+fun VinkelfesteScreen(
+    navigateBack: () -> Unit
+) {
+    val context = LocalContext.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    val scrollState = rememberScrollState()
 
+    // Enhetssystem fra innstillinger
+    val unitSystem = getUnitSystemPreference(context)
     val metricUnits = listOf("mm", "cm", "m")
     val imperialUnits = listOf("inch", "foot")
     val unitOptions = if (unitSystem == "Imperialsk") imperialUnits else metricUnits
 
-    // --- Hent lagrede verdier eller sett default ---
-    val savedUnit = remember { mutableStateOf(AppPreferenceManager.getLastFestepunktUnit(context).takeIf { it in unitOptions } ?: unitOptions.first()) }
-    val savedFeste = remember { mutableStateOf(AppPreferenceManager.loadPreference(context, "vinkelfeste_feste", "")) }
-    val savedVinkel = remember { mutableStateOf(AppPreferenceManager.loadPreference(context, "vinkelfeste_vinkel", "")) }
+    // Sist brukte enhet (fall tilbake til første alternativ om lagret enhet ikke finnes)
+    var selectedUnit by rememberSaveable {
+        mutableStateOf(
+            AppPreferenceManager.getLastFestepunktUnit(context)
+                .takeIf { it in unitOptions } ?: unitOptions.first()
+        )
+    }
 
-    var selectedUnit by rememberSaveable { mutableStateOf(savedUnit.value) }
-    val festeTfv = rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(savedFeste.value)) }
-    val vinkelTfv = rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(savedVinkel.value)) }
-    var resultat by rememberSaveable { mutableStateOf("") }
+    // Input-felt: standard feste ved 90° og borevinkel
+    val standardFesteState = rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(
+            TextFieldValue(
+                AppPreferenceManager.loadPreference(context, "vinkelfeste_standard_feste", "")
+            )
+        )
+    }
 
-    val focusFeste = remember { FocusRequester() }
-    val focusVinkel = remember { FocusRequester() }
+    val angleState = rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(
+            TextFieldValue(
+                AppPreferenceManager.loadPreference(context, "vinkelfeste_vinkel", "")
+            )
+        )
+    }
 
-    // --- Synkroniser lagring ved endring ---
+    // Fokusrekkefølge
+    val fFeste = remember { FocusRequester() }
+    val fVinkel = remember { FocusRequester() }
+
+    // Resultat / feil
+    var resultText by rememberSaveable { mutableStateOf("") }
+    var errorText by rememberSaveable { mutableStateOf("") }
+
+    // --- LAGRING AV PREFERANSER VED ENDRING ---
+
     LaunchedEffect(selectedUnit) {
         AppPreferenceManager.saveLastFestepunktUnit(context, selectedUnit)
     }
-    LaunchedEffect(festeTfv.value.text) {
-        AppPreferenceManager.savePreference(context, "vinkelfeste_feste", festeTfv.value.text)
-    }
-    LaunchedEffect(vinkelTfv.value.text) {
-        AppPreferenceManager.savePreference(context, "vinkelfeste_vinkel", vinkelTfv.value.text)
-    }
 
-    LaunchedEffect(unitSystem) {
-        if (selectedUnit !in unitOptions) {
-            selectedUnit = unitOptions.first()
-        }
-    }
-
-    fun kalkulerForskyvning(): String {
-        val festeMm = convertToMeters(festeTfv.value.text, selectedUnit)?.times(1000)  // til mm
-        val grader = vinkelTfv.value.text.replace(",", ".").toDoubleOrNull()
-
-        return if (festeMm != null && grader != null && grader in 0.0..<90.0) {
-            val radianer = grader * PI / 180
-            val nyAvstand = festeMm / cos(radianer)
-            val forskyvning = nyAvstand - festeMm
-            "Ny festeavstand: %.1f mm\nForskyvning: %.1f mm".format(nyAvstand, forskyvning)
-        } else if (grader != null && grader !in 0.0..<90.0) {
-            "Vinkel må være mellom 0 og 89 grader."
-        } else {
-            "Ugyldige verdier. Skriv inn gyldige tall."
-        }
-    }
-
-    Column(modifier = Modifier
-        .padding(16.dp)
-        .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text("Festepunkt ved vinkelboring", style = MaterialTheme.typography.headlineSmall)
-
-        DimensionField(
-            state = festeTfv,
-            label = "Festeavstand",
-            unit = selectedUnit,
-            focus = focusFeste,
-            nextFocus = focusVinkel
+    LaunchedEffect(standardFesteState.value.text) {
+        AppPreferenceManager.savePreference(
+            context,
+            "vinkelfeste_standard_feste",
+            standardFesteState.value.text
         )
+    }
 
-        OutlinedTextField(
-            value = vinkelTfv.value,
-            onValueChange = { vinkelTfv.value = it },
-            label = { Text("Vinkel (grader)") },
-            singleLine = true,
+    LaunchedEffect(angleState.value.text) {
+        AppPreferenceManager.savePreference(
+            context,
+            "vinkelfeste_vinkel",
+            angleState.value.text
+        )
+    }
+
+    // --- HJELPEFUNKSJONER ---
+
+    fun parseDouble(text: String): Double? =
+        text
+            .replace(",", ".")
+            .replace("[^0-9.+-]".toRegex(), "")
+            .toDoubleOrNull()
+
+    fun fromMeters(meters: Double, unit: String): Double {
+        return when (unit) {
+            "mm" -> meters * 1000.0
+            "cm" -> meters * 100.0
+            "m" -> meters
+            "inch" -> meters / 0.0254
+            "foot" -> meters / 0.3048
+            else -> meters
+        }
+    }
+
+    fun formatLength(meters: Double, unit: String): String {
+        val raw = fromMeters(meters, unit)
+        return String.format("%.1f %s", raw, unit)
+    }
+
+    fun calculate() {
+        errorText = ""
+        resultText = ""
+
+        val standardFesteMeters = convertToMeters(
+            standardFesteState.value.text,
+            selectedUnit
+        )
+        val angleDeg = parseDouble(angleState.value.text)
+
+        if (standardFesteMeters == null || standardFesteMeters <= 0.0) {
+            errorText = "Ugyldig standard festeavstand."
+            return
+        }
+        if (angleDeg == null || angleDeg <= 0.0 || angleDeg >= 89.0) {
+            errorText = "Vinkel må være mellom 1° og 89°."
+            return
+        }
+
+        val angleRad = angleDeg * PI / 180.0
+
+        // standard = nyFeste * cos(vinkel)  =>  nyFeste = standard / cos(vinkel)
+        val newFesteMeters = standardFesteMeters / cos(angleRad)
+        val deltaMeters = newFesteMeters - standardFesteMeters
+
+        val standardFesteFormatted = formatLength(standardFesteMeters, selectedUnit)
+        val newFesteFormatted = formatLength(newFesteMeters, selectedUnit)
+        val deltaFormatted = formatLength(deltaMeters, selectedUnit)
+
+        resultText = buildString {
+            appendLine("Standard feste ved 90°:")
+            appendLine("- $standardFesteFormatted")
+            appendLine()
+            appendLine("Borevinkel: ${String.format("%.1f°", angleDeg)}")
+            appendLine()
+            appendLine("Nytt feste ved denne vinkelen:")
+            appendLine("- $newFesteFormatted")
+            appendLine()
+            appendLine("Feste forskyves med:")
+            appendLine("- $deltaFormatted (ut fra kanten i samme retning som du vinkelborrer)")
+        }
+
+        keyboard?.hide()
+    }
+
+    AppScaffold(
+        title = "Vinkelboring – feste for stativ"
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusVinkel),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    resultat = kalkulerForskyvning()
-                    keyboardController?.hide()
-                }
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(scrollState)
+        ) {
+            Text(
+                text = "Regn ut hvor mye du må flytte festet til stativet ved vinkelboring " +
+                        "for å beholde samme \"startpunkt\" som ved 90°.",
+                style = MaterialTheme.typography.bodyMedium
             )
-        )
 
-        AppDropdown(
-            label = "Enhet",
-            options = unitOptions,
-            selectedOption = selectedUnit,
-            onOptionSelected = { selectedUnit = it }
-        )
+            Spacer(modifier = Modifier.padding(top = 16.dp))
 
-        Button(onClick = {
-            resultat = kalkulerForskyvning()
-            keyboardController?.hide()
-        }) {
-            Text("Beregn")
-        }
+            AppDropdown(
+                label = "Enhet",
+                options = unitOptions,
+                selectedOption = selectedUnit,
+                onOptionSelected = { selectedUnit = it }
+            )
 
-        if (resultat.isNotBlank()) {
-            Text(resultat, style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.padding(top = 16.dp))
+
+            InputField(
+                label = "Standard feste ved 90°",
+                state = standardFesteState,
+                unit = selectedUnit,
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next,
+                focus = fFeste,
+                nextFocus = fVinkel
+            )
+
+            InputField(
+                label = "Borevinkel (grader fra rett på)",
+                state = angleState,
+                unit = "°",
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done,
+                focus = fVinkel,
+                onDone = { calculate() }
+            )
+
+            Spacer(modifier = Modifier.padding(top = 16.dp))
+
+            Button(
+                onClick = { calculate() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Beregn nytt feste")
+            }
+
+            Spacer(modifier = Modifier.padding(top = 16.dp))
+
+            if (errorText.isNotEmpty()) {
+                Text(
+                    text = errorText,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            if (resultText.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text(
+                        text = resultText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.padding(top = 8.dp))
+
+            Text(
+                text = "OBS: Idealiserte beregninger.\n" +
+                        "Konsoller, stativgeometri og praktiske forhold kan gi små avvik. " +
+                        "Bruk alltid faglig skjønn.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
